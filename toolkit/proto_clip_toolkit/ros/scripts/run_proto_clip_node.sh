@@ -6,6 +6,7 @@ export CUDA_VISIBLE_DEVICES=1
 
 CONFIG_DIR=../../../configs
 DATASET_DIR=../../../dataset
+SPLITS_DIR=../../../splits
 MODEL_DIR=../../../pretrained_ckpt/fewsol-198-F
 
 python proto_clip_node.py --config $CONFIG_DIR/fewsol_198.yml \
@@ -15,4 +16,4 @@ python proto_clip_node.py --config $CONFIG_DIR/fewsol_198.yml \
         --asr_verbs_path ../pos/configs/verbs_dictionary.txt \
         --asr_nouns_path ../pos/configs/nouns_dictionary.txt \
         --asr_config_path ../asr/configs/asr_config.json \
-        --splits_path $DATASET_DIR/fewsol_splits_198.json
+        --splits_path $SPLITS_DIR/fewsol_splits_198.json
