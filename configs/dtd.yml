@@ -1,0 +1,20 @@
+# ------ root_path/dataset_name ------
+root_path: 'DATA'
+
+# ------ Basic Config ------
+shots: 16
+backbone: 'RN50'
+dataset: 'dtd'
+only_test: False
+
+lr: 0.0001
+augment_epoch: 10
+train_epoch: 2000
+
+alpha: 0.5
+beta: 5
+
+adapter: 'conv-3x'
+train_vis_mem_only: False
+
+losses: ['L1', 'L2', 'L3']

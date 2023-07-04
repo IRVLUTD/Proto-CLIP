@@ -1,0 +1,20 @@
+# ------ root_path/dataset_name ------
+root_path: 'DATA'
+
+# ------ Basic Config ------
+shots: 16
+backbone: 'RN50'
+dataset: 'imagenet'
+only_test: False
+
+lr: 0.0001
+augment_epoch: 10
+train_epoch: 2000 #200
+
+alpha: 0.5
+beta: 12
+
+adapter: 'conv-2x'
+train_vis_mem_only: True
+
+losses: ['L1', 'L2', 'L3']

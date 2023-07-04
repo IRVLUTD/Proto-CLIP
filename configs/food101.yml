@@ -1,0 +1,20 @@
+# ------ root_path/dataset_name ------
+root_path: 'DATA'
+
+# ------ Basic Config ------
+shots: 16
+backbone: 'RN50'
+dataset: 'food101'
+only_test: False
+
+lr: 0.0001
+augment_epoch: 10
+train_epoch: 2000
+
+alpha: 0.4
+beta: 10
+
+adapter: 'conv-2x'
+train_vis_mem_only: True
+
+losses: ['L1', 'L2', 'L3']

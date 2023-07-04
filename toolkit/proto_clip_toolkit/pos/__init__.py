@@ -1,0 +1,1 @@
+from .verb_and_noun_tagger import VerbAndNounTagger

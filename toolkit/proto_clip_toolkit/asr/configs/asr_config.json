@@ -1,0 +1,8 @@
+{
+    "model": "whisper-medium",
+    "non_english": false,
+    "energy_threshold": 1000,
+    "record_timeout": 2,
+    "phrase_timeout": 3,
+    "default_microphone": "Name of your microphone"
+}

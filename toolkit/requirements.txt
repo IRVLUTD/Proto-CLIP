@@ -1,0 +1,4 @@
+openai-whisper
+PyAudio>=0.2.13
+flair>=0.12.2
+SpeechRecognition>=3.10.0

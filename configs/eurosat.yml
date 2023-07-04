@@ -1,0 +1,20 @@
+# ------ root_path/dataset_name ------
+root_path: 'DATA'
+
+# ------ Basic Config ------
+shots: 16
+backbone: 'RN50'
+dataset: 'eurosat'
+only_test: False
+
+lr: 0.0001
+augment_epoch: 10
+train_epoch: 2000
+
+alpha: 1
+beta: 0.7
+
+adapter: 'fc'
+train_vis_mem_only: False
+
+losses: ['L1', 'L2', 'L3']
