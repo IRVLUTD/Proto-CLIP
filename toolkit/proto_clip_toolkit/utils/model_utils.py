@@ -2,8 +2,9 @@ import torch
 import os
 import sys
 
-sys.path.append("../../../../proto-clip")
+sys.path.append("../../..")
 from utils import *
+from model import Adapter, Adapter_FC
 
 def load_pretrained_mb_and_adapters(config=None, memory_bank_v_path=None, memory_bank_t_path=None, adapter_type=None, adapter_weights_path=None):
     """Returns the pretrained visual embeddings and textual embeddings from the memory bank and the pretrained query adapter"""

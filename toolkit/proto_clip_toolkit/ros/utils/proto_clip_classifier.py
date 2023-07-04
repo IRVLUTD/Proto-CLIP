@@ -2,23 +2,18 @@ import os
 import yaml
 import sys
 import json
-import cv2
-from scipy.io import savemat
+
 import time
 
 import numpy as np
 import random
 import torch
-import torch.nn as nn
-import torchvision.transforms as transforms
-from torchvision.datasets import ImageFolder
  
 
-sys.path.append("../../../../proto-clip")
+sys.path.append("../../")
 from utils import *
 
 import clip
-from model import Adapter, Adapter_FC
 from PIL import Image, ImageDraw, ImageFont
 from .image_utils import RealWorldDataset
 from proto_clip_toolkit.utils import load_pretrained_mb_and_adapters, pre_load_features_without_cache
@@ -60,6 +55,7 @@ class ProtoClipClassifier:
                 adapter_weights_path=args.adapter_weights_path
             )
 
+            NxK, ndim = embeddings_v.shape
             K = self.cfg['shots']
             N = NxK//K
 

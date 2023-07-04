@@ -15,14 +15,11 @@ class VerbAndNounTagger:
         noun_file = open(noun_dictionary_path, "r")
         noun_list = noun_file.readlines()
         self.allowed_noun_set = set([x.replace("_", " ").strip("\n") for x in noun_list])
-
+    
     def tag_sentence(self, text):
         """Tag a sentence with its POS and return the noun and verb from the sentence if they are present in the dictionary."""
         sentence = Sentence(text)
         self.tagger.predict(sentence)
-
-        parsed_verb = None
-        parsed_noun = None
         
         word_tag_list = []
 
@@ -31,7 +28,15 @@ class VerbAndNounTagger:
             # print(entity)
             word = entity.shortstring.split("/")[0].strip("\"").lower()
             word_tag_list.append((word, entity.value))
+        
+        return word_tag_list
 
+    def find_valid_noun_and_verb(self, text):
+        """Tag a sentence with its POS and return the noun and verb from the sentence if they are present in the dictionary."""
+        word_tag_list = self.tag_sentence(text)
+        parsed_verb = None
+        parsed_noun = None
+        
         idx = 0
         while idx < len(word_tag_list):
             curr_word, curr_tag = word_tag_list[idx]
