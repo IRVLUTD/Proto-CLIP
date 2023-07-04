@@ -60,7 +60,7 @@ Coming Soon. Thanks for your patience.
 <center>
     <img src="media/real-world.gif">
 </center>
-<h3 style="text-align: center;">For the real world demo, please use <a href="toolkit/"> proto-clip-toolkit</a>.</h3>
+<h3 style="text-align: center;">Demo: User command oriented robot (<a href="https://fetchrobotics.borealtech.com/robotics-platforms/fetch-mobile-manipulator/?lang=en">Fetch</a>) grasping using <span style="font-variant: small-caps">Proto-CLIP</span> predictions. <br>For the real world demo, please use <a href="toolkit/"> proto-clip-toolkit</a>.</h3>
 
 # Links
 - [Project Page](https://irvlutd.github.io/Proto-CLIP)
