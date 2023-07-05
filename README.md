@@ -57,10 +57,12 @@ Coming Soon. Thanks for your patience.
 ```
 
 # Proto-CLIP Toolkit
-<center>
-    <img src="media/real-world.gif">
-</center>
-<h3 style="text-align: center;">Demo: User command oriented robot (<a href="https://fetchrobotics.borealtech.com/robotics-platforms/fetch-mobile-manipulator/?lang=en">Fetch</a>) grasping using <span style="font-variant: small-caps">Proto-CLIP</span> predictions. <br>For the real world demo, please use <a href="toolkit/"> proto-clip-toolkit</a>.</h3>
+<p align="center">
+  <img src="media/real-world.gif">
+</p>
+<p align="center">
+ Demo: User command oriented robot (<a href="https://fetchrobotics.borealtech.com/robotics-platforms/fetch-mobile-manipulator/?lang=en">Fetch</a>) grasping using <span style="font-variant: small-caps">Proto-CLIP</span> predictions. <br>For the real world demo, please use <a href="toolkit/"> proto-clip-toolkit</a>.
+</p>
 
 # Links
 - [Project Page](https://irvlutd.github.io/Proto-CLIP)
@@ -73,5 +75,5 @@ Coming Soon. Thanks for your patience.
 # Contact
 Following 3 options are available for any clarification, comments or suggestions
 - Join the [discussion forum](https://github.com/IRVLUTD/Proto-CLIP/discussions).
-- Create an [issue](https://github.com/IRVLUTD/Proto-CLIP/issues).
+- Inform an [issue](https://github.com/IRVLUTD/Proto-CLIP/issues).
 - Contact [Jishnu](https://jishnujayakumar.github.io/).
