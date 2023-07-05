@@ -12,7 +12,7 @@
 
 # Install dependencies
 ```sh
-conda create -n proto-clip
+conda create -n proto-clip python=3.9
 conda activate proto-clip
 
 pip install -r requirements.txt
@@ -29,12 +29,19 @@ conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvi
 # Run
 ```sh
 
-CUDA_VISIBLE_DEVICES=<$gpu_id> python main.py \
---config <configs-file> --dataset <dataset-alias> \
---logs tb_logs --alpha <alpha> --beta <beta> \
---adapter <adapter-alias> <vl_flag> <test_flag>
+CUDA_VISIBLE_DEVICES=<GPU_ID> \
+python main.py \
+--config <configs-file> \
+--dataset <dataset-alias> \
+--logs tb_logs \
+--alpha <alpha> \
+--beta <beta> \
+--adapter <adapter-alias> \
+<vl_flag> \
+<test_flag>
 ```
 
+- `GPU_ID` : GPU ID
 - `config-file` : Configuration file path for the experiment. Default config files are in `configs/` directory.
 - `dataset-alias` : Alias of the dataset to be used for the experiment
 - `alpha` : alpha hyperparameter for the selected dataset
@@ -57,10 +64,10 @@ Coming Soon. Thanks for your patience.
 ```
 
 # Proto-CLIP Toolkit
-<center>
+<span style="center">
     <img src="media/real-world.gif">
-</center>
-<h3 style="text-align: center;">Demo: User command oriented robot (<a href="https://fetchrobotics.borealtech.com/robotics-platforms/fetch-mobile-manipulator/?lang=en">Fetch</a>) grasping using <span style="font-variant: small-caps">Proto-CLIP</span> predictions. <br>For the real world demo, please use <a href="toolkit/"> proto-clip-toolkit</a>.</h3>
+</span>
+<h4 style="text-align: center;">Demo: User command oriented robot (<a href="https://fetchrobotics.borealtech.com/robotics-platforms/fetch-mobile-manipulator/?lang=en">Fetch</a>) grasping using <span style="font-variant: small-caps">Proto-CLIP</span> predictions. <br>For the real world demo, please use <a href="toolkit/"> proto-clip-toolkit</a>.</h4>
 
 # Links
 - [Project Page](https://irvlutd.github.io/Proto-CLIP)
