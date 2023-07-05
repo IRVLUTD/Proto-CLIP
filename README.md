@@ -10,11 +10,15 @@
 - To download the [FewSOL](https://irvlutd.github.io/FewSOL/) dataset variants [52 | 198], please use [this link](https://utdallas.box.com/v/proto-clip-fewsol-variants).
 - **Note** : Please make sure to place all the datasets in `DATA/` directory.
 
-# Install dependencies
+# Setup
 ```sh
+# create conda environment
 conda create -n proto-clip python=3.9
+
+# activate the environment
 conda activate proto-clip
 
+# install dependencies
 pip install -r requirements.txt
 
 # Install the according versions of torch and torchvision
