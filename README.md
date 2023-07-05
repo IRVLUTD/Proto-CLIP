@@ -12,7 +12,7 @@
 
 # Install dependencies
 ```sh
-conda create -n proto-clip
+conda create -n proto-clip python=3.9
 conda activate proto-clip
 
 pip install -r requirements.txt
@@ -29,10 +29,16 @@ conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvi
 # Run
 ```sh
 
-CUDA_VISIBLE_DEVICES=<$gpu_id> python main.py \
---config <configs-file> --dataset <dataset-alias> \
---logs tb_logs --alpha <alpha> --beta <beta> \
---adapter <adapter-alias> <vl_flag> <test_flag>
+CUDA_VISIBLE_DEVICES=<GPU_ID> \
+python main.py \
+--config <configs-file> \
+--dataset <dataset-alias> \
+--logs tb_logs \
+--alpha <alpha> \
+--beta <beta> \
+--adapter <adapter-alias> \
+<vl_flag> \
+<test_flag>
 ```
 
 - `config-file` : Configuration file path for the experiment. Default config files are in `configs/` directory.
