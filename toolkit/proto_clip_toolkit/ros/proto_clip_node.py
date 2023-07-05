@@ -8,7 +8,7 @@ import cv2
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 
-from proto_clip_toolkit.asr import transcribe_with_pos
+from proto_clip_toolkit.asr import transcribe_with_verb_and_noun_matching
 from proto_clip_toolkit.pos import VerbAndNounTagger
 from proto_clip_toolkit.ros.utils import crop_object_images, ProtoClipClassifier, SegImageListener
 
@@ -74,7 +74,7 @@ if __name__=="__main__":
         print("The top-1 detected classes are", detected_classes)
         
         print("Starting transcription with whisper")
-        spoken_action, spoken_noun = transcribe_with_pos(args.asr_config_path, pos_tagger)
+        spoken_action, spoken_noun = transcribe_with_verb_and_noun_matching(args.asr_config_path, pos_tagger)
 
 
         matching_k_idxes = [row.index(spoken_noun) if spoken_noun in row else -1 for row in top_k_classes]

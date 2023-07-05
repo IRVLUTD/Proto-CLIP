@@ -14,7 +14,7 @@ from time import sleep
 from sys import platform
 from .asr_utils import Config
 
-def transcribe_with_pos(asr_config_path, tagger):
+def transcribe_with_verb_and_noun_matching(asr_config_path, tagger):
     """Returns the spoken noun and verb that is present in the action and object dictionary for performing the grasp."""
     config = Config(asr_config_path)
 
@@ -111,10 +111,10 @@ def transcribe_with_pos(asr_config_path, tagger):
                 # Otherwise edit the existing one.
                 if phrase_complete:
                     transcription.append(text)
-                    parsed_action, parsed_noun = tagger.tag_sentence(text)
+                    parsed_action, parsed_noun = tagger.find_valid_noun_and_verb(text)
                 else:
                     transcription[-1] = text
-                    parsed_action, parsed_noun = tagger.tag_sentence(text)
+                    parsed_action, parsed_noun = tagger.find_valid_noun_and_verb(text)
                 
                 if parsed_action and parsed_noun:
                     print("All the transcribed text", transcription)

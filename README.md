@@ -41,7 +41,6 @@ python main.py \
 <test_flag>
 ```
 
-- `GPU_ID` : GPU ID
 - `config-file` : Configuration file path for the experiment. Default config files are in `configs/` directory.
 - `dataset-alias` : Alias of the dataset to be used for the experiment
 - `alpha` : alpha hyperparameter for the selected dataset
@@ -64,10 +63,12 @@ Coming Soon. Thanks for your patience.
 ```
 
 # Proto-CLIP Toolkit
-<span style="center">
-    <img src="media/real-world.gif">
-</span>
-<h4 style="text-align: center;">Demo: User command oriented robot (<a href="https://fetchrobotics.borealtech.com/robotics-platforms/fetch-mobile-manipulator/?lang=en">Fetch</a>) grasping using <span style="font-variant: small-caps">Proto-CLIP</span> predictions. <br>For the real world demo, please use <a href="toolkit/"> proto-clip-toolkit</a>.</h4>
+<p align="center">
+  <img src="media/real-world.gif">
+</p>
+<p align="center">
+ Demo: User command oriented robot (<a href="https://fetchrobotics.borealtech.com/robotics-platforms/fetch-mobile-manipulator/?lang=en">Fetch</a>) grasping using <span style="font-variant: small-caps">Proto-CLIP</span> predictions. <br>For the real world demo, please use <a href="toolkit/"> proto-clip-toolkit</a>.
+</p>
 
 # Links
 - [Project Page](https://irvlutd.github.io/Proto-CLIP)
@@ -80,5 +81,5 @@ Coming Soon. Thanks for your patience.
 # Contact
 Following 3 options are available for any clarification, comments or suggestions
 - Join the [discussion forum](https://github.com/IRVLUTD/Proto-CLIP/discussions).
-- Create an [issue](https://github.com/IRVLUTD/Proto-CLIP/issues).
+- Inform an [issue](https://github.com/IRVLUTD/Proto-CLIP/issues).
 - Contact [Jishnu](https://jishnujayakumar.github.io/).

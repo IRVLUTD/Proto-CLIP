@@ -1,29 +1,22 @@
 import torch
 import os
 import matplotlib.pyplot as plt
-import numpy as np
-import torchvision.transforms.functional as TF
 import argparse
 import yaml
-import random
 import sys
 
-sys.path.append("../../../../proto-clip")
+sys.path.append("../../")
 from proto_datasets import build_dataset
 from sklearn.manifold import TSNE
-from PIL import Image
-from matplotlib.image import BboxImage
-from matplotlib.transforms import Bbox, TransformedBbox
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from utils import build_cache_model, get_textual_memory_bank
-from scipy.io import savemat
 import json
 import cv2
-import matplotlib as mpl
 
 def get_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', dest='config', help='settings of Proto-CLIP in yaml format', required=True)
+    parser.add_argument('--splits_path', dest='splits_path', help='path to the splits file for the particular dataset', required=True)
     parser.add_argument('--memory_bank_v_path', dest='memory_bank_v_path', help='path to the visual embeddings memory bank', required=True)
     parser.add_argument('--memory_bank_t_path', dest='memory_bank_t_path', help='path to the textual embeddings memory bank', required=True)
     parser.add_argument('--after_train', dest='after_train', help='save embeddings after training', action='store_true')
@@ -132,10 +125,6 @@ if __name__=="__main__":
 
     cfg = yaml.load(open(args.config, 'r'), Loader=yaml.Loader)
 
-    cache_dir = os.path.join('./caches', cfg['dataset'])
-    os.makedirs(cache_dir, exist_ok=True)
-    cfg['cache_dir'] = cache_dir
-
     dataset = build_dataset(cfg['dataset'], cfg['root_path'], cfg['shots'])
 
     if not args.after_train:
@@ -171,7 +160,7 @@ if __name__=="__main__":
     zs_text = embeddings_t
     z_text_proto = zs_text / zs_text.norm(dim=-1, keepdim=True)
         
-    class_id_mapping = parse_splits_file("../../datasets/fewsol_splits_198.json")
+    class_id_mapping = parse_splits_file(args.splits_path)
 
     if args.after_train:
         plot_tsne_after(z_img_proto, z_text_proto, list(class_id_mapping.values()))
