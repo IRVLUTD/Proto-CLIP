@@ -43,7 +43,7 @@ def get_arguments():
     parser.add_argument('--losses', nargs='+', dest='losses',
                         help="List of loss aliases: {'L1', 'L2', 'L3'}", required=False)
     parser.add_argument('--backbone', dest='backbone',
-                        help='backbones: [RN50, RN101, RN50x4, RN50x16, RN50x64, ViT-B/16, ViT-B/32, ViT-L/14@336px]', type=str, required=False)
+                        help='backbones: [RN50, RN101, ViT-B/16, ViT-B/32, ViT-L/14]', type=str, required=False)
     parser.add_argument('--dataset', dest='dataset',
                         help='dataset alias: [ caltech101, dtd, eurosat, fgvc, food101, imagenet, oxford_flowers, oxford_pets, stanford_cars, sun397, ucf101 ]', required=False)
     args = parser.parse_args()
