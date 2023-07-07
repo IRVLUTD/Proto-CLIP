@@ -32,7 +32,7 @@ conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvi
   | 3xConv      | conv-3x         |
   | 2xConv      | conv-2x         |
   | MLP         | fc              |
-- For info about adapter aliases, please check the [supplementary material](https://arxiv.org/src/2307.03073v1/anc/Proto_CLIP_supp.pdf).
+- For details about adapter aliases, please check the [supplementary material](https://arxiv.org/src/2307.03073v1/anc/Proto_CLIP_supp.pdf).
 
 - For dataset aliases, please check [datasets/\_\_init\_\_.py](datasets/__init__.py)
  
