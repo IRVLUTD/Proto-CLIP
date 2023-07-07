@@ -26,8 +26,6 @@ conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvi
 ```
 
 # Alias
-
-- For dataset aliases, please check [datasets/\_\_init\_\_.py](datasets/__init__.py)
  
 - | **Adapter** | **Adapter-Alias** |
   |-------------|-----------------|
@@ -36,6 +34,7 @@ conda install pytorch torchvision torchaudio pytorch-cuda=11.7 -c pytorch -c nvi
   | MLP         | fc              |
 - For info about adapter aliases, please check the [supplementary material](https://arxiv.org/src/2307.03073v1/anc/Proto_CLIP_supp.pdf).
 
+- For dataset aliases, please check [datasets/\_\_init\_\_.py](datasets/__init__.py)
  
 
 # Run

@@ -37,7 +37,7 @@ Since we require multiple systems to be run simultaneously, we recommend using t
 
 The details on running each of the nodes is given below:
 
-1. **Step-1:** Start the fetch robot
+1. **Step-1:** Start the fetch robot.
    - If you do not have a fetch robot available, you can setup the Fetch robot in Gazebo and use the same topic names as the original robot. The instructions for setting up gazebo are provided in the SceneReplica repository linked in Step 4.
 
 2. **Step-2:** Run the segmentation node. 
