@@ -5,7 +5,10 @@ import argparse
 import yaml
 import sys
 
-sys.path.append("../../")
+from pathlib import Path
+p = Path(__file__).parents[3]
+
+sys.path.append(str(p))
 from proto_datasets import build_dataset
 from sklearn.manifold import TSNE
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox

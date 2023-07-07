@@ -71,6 +71,10 @@ The details on running each of the nodes is given below:
     ```
     ./scripts/run_proto_clip_rviz_results_pub.sh
     ```
+Then, run the following command to initialize the rviz window similar to our demo.
+    ```
+    rosrun rviz rviz -d scripts/proto-clip.rviz
+    ```
 
  - You can find the terminator window below for reference. The numbers represent the sequence number mentioned before.
 
@@ -96,8 +100,8 @@ asr_nouns_path = "proto_clip_toolkit/pos/configs/nouns_dictionary.txt"
 pos_tagger = VerbAndNounTagger(asr_verbs_path, asr_nouns_path)
 sentence = "Pick the mustard bottle."
 
-word_tag_list = pos_tagger.tag_sentence(sentence) # [("Pick", "VB"), ("the", "DT"), ("mustard", "NN"), ("bottle", "NN")]
-verb, noun = pos_tagger.find_valid_noun_and_verb(sentence) # "pick", "mustard bottle"
+word_tag_list = pos_tagger.tag_sentence(sentence) # [("Pick", "VB"), ("the", "DT"), ("mustard", "NN"), ("bottle", "NN"), , ('.', '.')]
+verb, noun = pos_tagger.find_valid_noun_and_verb(sentence) # ("pick", "mustard bottle")
 ```
 
 ## Automatic Speech Recognition(ASR)
