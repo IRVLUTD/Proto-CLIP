@@ -87,7 +87,7 @@ Coming Soon. Thanks for your patience.
 - Please check the FAQs [here](#FAQs)
 - Real World [Demo](https://irvlutd.github.io/Proto-CLIP#demo) | [Playlist](https://www.youtube.com/watch?v=CisrACRE7qE&list=PLgOC2wLNlACnuPrQV2Kxq2PtTAgUqdM-T)
 - [Results](https://irvlutd.github.io/Proto-CLIP#jos-fsc) for Joint Object Segmentation and Few-Shot Classification in the Real World
-- CLIP vs Proto-CLIP [t-SNE visualization](https://irvlutd.github.io/#clip-vs-proto-clip-t-sne)
+- CLIP vs Proto-CLIP [t-SNE visualization](https://irvlutd.github.io/Proto-CLIP#clip-vs-proto-clip-t-sne)
 - Barnes-Hut [t-SNE visualization](https://irvlutd.github.io/Proto-CLIP#t-sne) using fine-tuned Proto-CLIP trained on [FewSOL](https://irvlutd.github.io/FewSOL) [198 classes] dataset
 
 # Contact
