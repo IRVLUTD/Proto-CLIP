@@ -25,7 +25,7 @@ Datasets list:
     - [DTD](#dtd)
     - [EuroSAT](#eurosat)
     - [UCF101](#ucf101)
-    - [Reference: Tip-Adapter-Datasets](#reference-tip-adapter-datasets)
+      - [Reference: Tip-Adapter-Datasets](#reference-tip-adapter-datasets)
 
 The instructions to prepare each dataset are detailed below. To ensure reproducibility and fair comparison for future work, we utilize CoOp-style train/val/test splits for all datasets except ImageNet where the validation set is used as test set.
 
@@ -179,4 +179,4 @@ ucf101/
 |–– split_zhou_UCF101.json
 ```
 
-### Reference: [Tip-Adapter-Datasets](https://github.com/gaopengcuhk/Tip-Adapter/blob/main/DATASET.md)
+#### Reference: [Tip-Adapter-Datasets](https://github.com/gaopengcuhk/Tip-Adapter/blob/main/DATASET.md)
