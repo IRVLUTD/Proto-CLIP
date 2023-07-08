@@ -84,7 +84,8 @@ Please cite <span style="font-variant: small-caps">Proto-CLIP</span> if it helps
   <img src="media/real-world.gif">
 </p>
 <p align="center">
- Demo: User command oriented robot (<a href="https://fetchrobotics.borealtech.com/robotics-platforms/fetch-mobile-manipulator/?lang=en">Fetch</a>) grasping using <span style="font-variant: small-caps">Proto-CLIP</span> predictions. <br>For the real world demo, please use <a href="toolkit/"> proto-clip-toolkit</a> | Check the <a href="https://pypi.org/project/proto-clip-toolkit/">PyPi</a> package.
+ Demo: User command oriented (<a href="https://fetchrobotics.borealtech.com/robotics-platforms/fetch-mobile-manipulator/?lang=en">Fetch</a>) robot grasping using <span style="font-variant: small-caps">Proto-CLIP</span> predictions. <br>For the real world demo, please use <a href="./toolkit/"> proto-clip-toolkit</a> (<a href="./toolkit/README.md">sample codes</a>). | Please check the pypi package <a href="https://pypi.org/project/proto-clip-toolkit/">here</a>.<br>
+ Please check the <a href="./pretrained_ckpt/">pretrained checkpoints</a> to use/work with the proto-clip-toolkit. <b>NOTE:</b> Use appropriate dataset w.r.t. the checkpoint.
 </p>
 
 # Links
