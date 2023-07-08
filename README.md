@@ -71,11 +71,11 @@ tensorboard --logdir tb_logs
 Please cite <span style="font-variant: small-caps">Proto-CLIP</span> if it helps your research:
 ```bibtex
 @misc{p2023protoclip,
-      title={Proto-CLIP: Vision-Language Prototypical Network for Few-Shot Learning}, 
-      author={Jishnu Jaykumar P and Kamalesh Palanisamy and Yu-Wei Chao and Xinya Du and Yu Xiang},
-      year={2023},
-      eprint={2307.03073},
-      archivePrefix={arXiv},
+ title={Proto-CLIP: Vision-Language Prototypical Network for Few-Shot Learning}, 
+ author={Jishnu Jaykumar P and Kamalesh Palanisamy and Yu-Wei Chao and Xinya Du and Yu Xiang},
+ year={2023},
+ eprint={2307.03073},
+ archivePrefix={arXiv},
 }
 ```
 
@@ -94,7 +94,7 @@ Please cite <span style="font-variant: small-caps">Proto-CLIP</span> if it helps
 - Real World [Demo](https://irvlutd.github.io/Proto-CLIP#demo) | [Playlist](https://www.youtube.com/watch?v=CisrACRE7qE&list=PLgOC2wLNlACnuPrQV2Kxq2PtTAgUqdM-T)
 - [Results](https://irvlutd.github.io/Proto-CLIP#jos-fsc) for Joint Object Segmentation and Few-Shot Classification in the Real World
 - CLIP vs Proto-CLIP [t-SNE visualization](https://irvlutd.github.io/Proto-CLIP#clip-vs-proto-clip-t-sne)
-- Barnes-Hut [t-SNE visualization](https://irvlutd.github.io/Proto-CLIP#t-sne) using fine-tuned Proto-CLIP trained on [FewSOL](https://irvlutd.github.io/FewSOL) [198 classes] dataset
+- Barnes-Hut [t-SNE visualization](https://irvlutd.github.io/Proto-CLIP#t-sne) using Proto-CLIP-F trained on [FewSOL](https://irvlutd.github.io/FewSOL) [198 classes] dataset
 
 # Contact
 Following 3 options are available for any clarification, comments or suggestions
