@@ -16,6 +16,6 @@ beta: 12.0
 top_k: 5
 
 adapter: 'fc'
-train_vis_mem_only: False
+train_vis_mem_only: True
 
 losses: ['L1', 'L2', 'L3']
