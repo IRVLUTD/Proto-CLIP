@@ -78,7 +78,7 @@ Coming Soon. Thanks for your patience.
   <img src="media/real-world.gif">
 </p>
 <p align="center">
- Demo: User command oriented robot (<a href="https://fetchrobotics.borealtech.com/robotics-platforms/fetch-mobile-manipulator/?lang=en">Fetch</a>) grasping using <span style="font-variant: small-caps">Proto-CLIP</span> predictions. <br>For the real world demo, please use <a href="toolkit/"> proto-clip-toolkit</a>.
+ Demo: User command oriented robot (<a href="https://fetchrobotics.borealtech.com/robotics-platforms/fetch-mobile-manipulator/?lang=en">Fetch</a>) grasping using <span style="font-variant: small-caps">Proto-CLIP</span> predictions. <br>For the real world demo, please use <a href="toolkit/"> proto-clip-toolkit</a> | <a href="https://www.piwheels.org/project/proto-clip-toolkit/">piwheels link</a>
 </p>
 
 # Links
