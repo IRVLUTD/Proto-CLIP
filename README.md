@@ -68,9 +68,15 @@ tensorboard --logdir tb_logs
 ```
 
 # Citation
-Please cite the following if you incorporate our work.
+Please cite <span style="font-variant: small-caps">Proto-CLIP</span> if it helps your research:
 ```bibtex
-Coming Soon. Thanks for your patience.
+@misc{p2023protoclip,
+      title={Proto-CLIP: Vision-Language Prototypical Network for Few-Shot Learning}, 
+      author={Jishnu Jaykumar P and Kamalesh Palanisamy and Yu-Wei Chao and Xinya Du and Yu Xiang},
+      year={2023},
+      eprint={2307.03073},
+      archivePrefix={arXiv},
+}
 ```
 
 # Proto-CLIP Toolkit
