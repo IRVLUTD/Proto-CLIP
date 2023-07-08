@@ -307,7 +307,6 @@ def build_cache_model(cfg, clip_model, train_loader_cache):
                     'Augment Epoch: {:} / {:}'.format(augment_idx, cfg['augment_epoch']))
                 for i, (images, target) in enumerate(tqdm(train_loader_cache)):
                     images = images.cuda()
-                    print("shape", images.shape)
                     image_features = clip_model.encode_image(images)
                     train_features.append(image_features)
                     if augment_idx == 0:

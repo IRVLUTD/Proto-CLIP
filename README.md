@@ -68,9 +68,15 @@ tensorboard --logdir tb_logs
 ```
 
 # Citation
-Please cite the following if you incorporate our work.
+Please cite <span style="font-variant: small-caps">Proto-CLIP</span> if it helps your research:
 ```bibtex
-Coming Soon. Thanks for your patience.
+@misc{p2023protoclip,
+      title={Proto-CLIP: Vision-Language Prototypical Network for Few-Shot Learning}, 
+      author={Jishnu Jaykumar P and Kamalesh Palanisamy and Yu-Wei Chao and Xinya Du and Yu Xiang},
+      year={2023},
+      eprint={2307.03073},
+      archivePrefix={arXiv},
+}
 ```
 
 # Proto-CLIP Toolkit
@@ -78,7 +84,8 @@ Coming Soon. Thanks for your patience.
   <img src="media/real-world.gif">
 </p>
 <p align="center">
- Demo: User command oriented robot (<a href="https://fetchrobotics.borealtech.com/robotics-platforms/fetch-mobile-manipulator/?lang=en">Fetch</a>) grasping using <span style="font-variant: small-caps">Proto-CLIP</span> predictions. <br>For the real world demo, please use <a href="toolkit/"> proto-clip-toolkit</a>.
+ Demo: User command oriented (<a href="https://fetchrobotics.borealtech.com/robotics-platforms/fetch-mobile-manipulator/?lang=en">Fetch</a>) robot grasping using <span style="font-variant: small-caps">Proto-CLIP</span> predictions. <br>For the real world demo, please use <a href="./toolkit/"> proto-clip-toolkit</a> (<a href="./toolkit/README.md">sample codes</a>). | Please check the pypi package <a href="https://pypi.org/project/proto-clip-toolkit/">here</a>.<br>
+ Please check the <a href="./pretrained_ckpt/">pretrained checkpoints</a> to use/work with the proto-clip-toolkit. <b>NOTE:</b> Use appropriate dataset w.r.t. the checkpoint.
 </p>
 
 # Links
