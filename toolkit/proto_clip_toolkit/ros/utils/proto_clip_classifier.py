@@ -10,7 +10,10 @@ import random
 import torch
  
 
-sys.path.append("../../")
+from pathlib import Path
+p = Path(__file__).parents[4]
+
+sys.path.append(str(p))
 from utils import *
 
 import clip

@@ -2,7 +2,10 @@ import torch
 import os
 import sys
 
-sys.path.append("../../..")
+from pathlib import Path
+p = Path(__file__).parents[3]
+
+sys.path.append(str(p))
 from utils import *
 from model import Adapter, Adapter_FC
 

@@ -12,7 +12,10 @@ import sys
 from .model_utils import load_pretrained_mb_and_adapters
 from torchvision.datasets import ImageFolder
 
-sys.path.append("../../")
+from pathlib import Path
+p = Path(__file__).parents[3]
+
+sys.path.append(str(p))
 from utils import *
 from imagenetv2_pytorch import ImageNetV2Dataset
 from PIL import Image
