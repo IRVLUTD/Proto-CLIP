@@ -453,8 +453,6 @@ def main():
         dataset = ImageNet(cfg['root_path'], cfg['shots'], preprocess)
         train_loader_cache = torch.utils.data.DataLoader(
             dataset.train, batch_size=train_bs, num_workers=n_workers, shuffle=False, worker_init_fn=seed_worker, generator=g)
-        train_loader_F = torch.utils.data.DataLoader(
-            dataset.train, batch_size=256, num_workers=n_workers, shuffle=True, worker_init_fn=seed_worker, generator=g)
         val_loader = torch.utils.data.DataLoader(
             dataset.test, batch_size=val_bs, num_workers=n_workers, shuffle=False)
         test_loader = torch.utils.data.DataLoader(
