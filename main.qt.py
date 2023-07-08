@@ -78,7 +78,6 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
     ndim, NxK = visual_memory_keys.shape
     K = cfg['shots']
     N = NxK//K
-    print('num classes %d' % N)
 
     visual_embeddings = nn.Embedding(
         num_embeddings=NxK, embedding_dim=ndim).cuda().to(clip_model.dtype)
@@ -94,13 +93,9 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
     textual_embeddings.weight = nn.Parameter(textual_memory_bank.t().clone())
 
     if cfg['train_vis_mem_only']:
-        print(f"training v+adapter-{cfg['adapter']}",
-              cfg['train_vis_mem_only'])
         params = list(adapter.parameters()) + \
             list(visual_embeddings.parameters())
     else:
-        print(
-            f"training v+l+adapter-{cfg['adapter']}", cfg['train_vis_mem_only'])
         params = list(visual_embeddings.parameters(
         )) + list(textual_embeddings.parameters()) + list(adapter.parameters())
 
@@ -262,7 +257,6 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
             train_loss = sum(loss_list)/len(loss_list)
             print('LR: {:.6f}, Acc: {:.4f}% ({:}/{:}), Loss: {:.4f}'.format(
                 current_lr, train_acc*100, correct_samples, all_samples, train_loss))
-            print('best alpha, beta', best_alpha, best_beta)
 
             # test validation set
             with torch.no_grad():
@@ -336,9 +330,6 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
         best_model_path_v = os.path.join(model_dir, f"{model_prefix}_v.pt")
         best_model_path_t = os.path.join(model_dir, f"{model_prefix}_t.pt")
         best_model_path_a = os.path.join(model_dir, f"{model_prefix}_a.pt")
-        print(best_model_path_v)
-        print(best_model_path_t)
-        print(best_model_path_a)
 
         try:
             embeddings_v = torch.load(best_model_path_v)
@@ -385,8 +376,6 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
         val_acc_list = np.array(val_acc_list)
         test_acc_list = np.array(test_acc_list)
         train_acc_list = np.array(train_acc_list)
-        print('max val', max(val_acc_list[:, 2]))
-        print('max test', max(test_acc_list[:, 2]))
 
         p = P(test_features, z_img_proto, z_text_proto, best_alpha, best_beta)
 
