@@ -48,8 +48,8 @@ python main.py \
 --alpha <alpha> \
 --beta <beta> \
 --adapter <adapter-alias> \
-<vl_flag> \
-<test_flag>
+<vl-flag> \
+<test-flag>
 ```
 
 - `config-file` : Configuration file path for the experiment. Default config files are in `configs/` directory.
@@ -65,18 +65,6 @@ Note: Please use `main.qt.py` for experiments involving <strong style="font-vari
 # Tensorboard
 ```sh
 tensorboard --logdir tb_logs
-```
-
-# Citation
-Please cite <span style="font-variant: small-caps">Proto-CLIP</span> if it helps your research:
-```bibtex
-@misc{p2023protoclip,
- title={Proto-CLIP: Vision-Language Prototypical Network for Few-Shot Learning}, 
- author={Jishnu Jaykumar P and Kamalesh Palanisamy and Yu-Wei Chao and Xinya Du and Yu Xiang},
- year={2023},
- eprint={2307.03073},
- archivePrefix={arXiv},
-}
 ```
 
 # Proto-CLIP Toolkit
@@ -101,3 +89,15 @@ Following 3 options are available for any clarification, comments or suggestions
 - Join the [discussion forum](https://github.com/IRVLUTD/Proto-CLIP/discussions).
 - Inform an [issue](https://github.com/IRVLUTD/Proto-CLIP/issues).
 - Contact [Jishnu](https://jishnujayakumar.github.io/).
+
+# Citation
+Please cite <span style="font-variant: small-caps">Proto-CLIP</span> if it helps your research:
+```bibtex
+@misc{p2023protoclip,
+ title={Proto-CLIP: Vision-Language Prototypical Network for Few-Shot Learning}, 
+ author={Jishnu Jaykumar P and Kamalesh Palanisamy and Yu-Wei Chao and Xinya Du and Yu Xiang},
+ year={2023},
+ eprint={2307.03073},
+ archivePrefix={arXiv},
+}
+```
