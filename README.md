@@ -93,11 +93,11 @@ Following 3 options are available for any clarification, comments or suggestions
 # Citation
 Please cite <span style="font-variant: small-caps">Proto-CLIP</span> if it helps your research:
 ```bibtex
-@misc{p2023protoclip,
+@article{padalunkal2023protoclip,
  title={Proto-CLIP: Vision-Language Prototypical Network for Few-Shot Learning}, 
  author={Jishnu Jaykumar P and Kamalesh Palanisamy and Yu-Wei Chao and Xinya Du and Yu Xiang},
- year={2023},
- eprint={2307.03073},
  archivePrefix={arXiv},
+ eprint={2307.03073},
+ year={2023}
 }
 ```
