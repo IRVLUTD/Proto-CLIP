@@ -1,6 +1,7 @@
 # Proto-CLIP: Vision-Language Prototypical Network for Few-Shot Learning
 
-## This is the official implementation for [Proto-CLIP](https://irvlutd.github.io/Proto-CLIP).
+This is the official implementation for **Proto-CLIP**: [Arxiv](https://arxiv.org/abs/2307.03073) | [Project-Page](https://irvlutd.github.io/Proto-CLIP) 
+
 
 ![alt text](https://irvlutd.github.io/Proto-CLIP/assets/images/proto-clip/proto_clip.webp)
 
@@ -60,7 +61,7 @@ python main.py \
 - `vl-flag` : To train text memory use `""` else `"--train_vis_memory_only"`
 - `test-flag` : To train/test use `""`/`"--only_test"`. 
 
-Note: Please use `main.qt.py` for experiments involving <strong style="font-variant: small-caps">Proto-CLIP-F-Q<sup>T</sup></strong>.
+Note: Please use `main.qt.py` for experiments involving <strong style="font-variant: small-caps">Proto-CLIP-*F-Q<sup>T</sup>*</strong>.
 
 # Tensorboard
 ```sh
@@ -72,7 +73,7 @@ tensorboard --logdir tb_logs
   <img src="media/real-world.gif">
 </p>
 <p align="center">
- Demo: User command oriented (<a href="https://fetchrobotics.borealtech.com/robotics-platforms/fetch-mobile-manipulator/?lang=en">Fetch</a>) robot grasping using <span style="font-variant: small-caps">Proto-CLIP</span> predictions. <br>For the real world demo, please use <a href="./toolkit/"> proto-clip-toolkit</a> (<a href="./toolkit/README.md">sample codes</a>). | Please check the pypi package <a href="https://pypi.org/project/proto-clip-toolkit/">here</a>.<br>
+ Demo: User command oriented (<a href="https://fetchrobotics.borealtech.com/robotics-platforms/fetch-mobile-manipulator/?lang=en">Fetch</a>) robot grasping using <span style="font-variant: small-caps">Proto-CLIP</span> predictions. <br>For the real world demo, please use <a href="./toolkit/"> proto-clip-toolkit</a> (<a href="./toolkit/README.md">sample codes</a>). Please check the pypi package <a href="https://pypi.org/project/proto-clip-toolkit/">here</a>.<br>
  Please check the <a href="./pretrained_ckpt/">pretrained checkpoints</a> to use/work with the proto-clip-toolkit.<br><b>NOTE:</b> Use appropriate dataset w.r.t. the checkpoint.
 </p>
 

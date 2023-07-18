@@ -145,6 +145,8 @@ spoken_action, spoken_object = transcribe_with_verb_and_noun_matching(asr_config
 
 ## Utils
 
+Note: **-F** suffix indicates that the model checkpoint is from Proto-CLIP-*F*.
+
 ### tSNE
 
 - Due to conflicts in the naming scheme inside proto-clip and hugging face, please create a separate conda environment if you want to test the tSNE apis.
@@ -182,18 +184,18 @@ plot_tsne_after(image_embeddings, text_embeddings, text_prompts)
 
 ### Out-Of-Distribution (OOD) datasets test
 
-- The OOD module allows you to test the Proto-CLIP model on OOD datasets.
-- This purely an API and we have provided the sample code to call the API below:
+- The OOD module allows you to test the Proto-CLIP model on OOD datasets, e.g. ImageNetV2, ImageNet-Sketch.
+- This is purely an API and we have provided the sample code to call the API below:
 
 ```
 import yaml
 from proto_clip_toolkit.utils.ood_utils import test_ood_performance
 
-config_path = "../configs/fewsol_198.yml"
+config_path = "../configs/imagenet.yml"
 config = yaml.load(open(config_path, 'r'), Loader=yaml.Loader)
-memory_bank_v_path = "../pretrained_ckpt/fewsol-198-F/memory_bank_v.pt"
-memory_bank_t_path = "../pretrained_ckpt/fewsol-198-F/memory_bank_t.pt"
-adapter_weights_path = "../pretrained_ckpt/fewsol-198-F/query_adapter.pt"
+memory_bank_v_path = "../pretrained_ckpt/imagenet-F/memory_bank_v.pt"
+memory_bank_t_path = "../pretrained_ckpt/imagenet-F/memory_bank_t.pt"
+adapter_weights_path = "../pretrained_ckpt/imagenet-F/query_adapter.pt"
 
 
 imagenet_v2_test_acc = test_ood_performance(config, "imagenet_v2", 1, 1, memory_bank_v_path, memory_bank_t_path, "fc", adapter_weights_path)
