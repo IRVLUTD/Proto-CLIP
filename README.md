@@ -1,6 +1,6 @@
 # Proto-CLIP: Vision-Language Prototypical Network for Few-Shot Learning
 
-This is the official implementation for **Proto-CLIP**: [Arxiv](https://arxiv.org/abs/2307.03073) | [Project-Page](https://irvlutd.github.io/Proto-CLIP) 
+Code release for **Proto-CLIP** [ [Arxiv](https://arxiv.org/abs/2307.03073) | [Project-Page](https://irvlutd.github.io/Proto-CLIP) ]
 
 
 ![alt text](https://irvlutd.github.io/Proto-CLIP/assets/images/proto-clip/proto_clip.webp)
@@ -61,7 +61,7 @@ python main.py \
 - `vl-flag` : To train text memory use `""` else `"--train_vis_memory_only"`
 - `test-flag` : To train/test use `""`/`"--only_test"`. 
 
-Note: Please use `main.qt.py` for experiments involving <strong style="font-variant: small-caps">Proto-CLIP-*F-Q<sup>T</sup>*</strong>.
+**Note:** Please use `main.qt.py` for experiments involving <strong style="font-variant: small-caps">Proto-CLIP-*F-Q<sup>T</sup>*</strong>.
 
 # Tensorboard
 ```sh
@@ -79,7 +79,7 @@ tensorboard --logdir tb_logs
 
 # Links
 - [Project Page](https://irvlutd.github.io/Proto-CLIP)
-- Please check the FAQs [here](#FAQs)
+- Please check the FAQs [here](https://irvlutd.github.io/Proto-CLIP/#FAQs)
 - Real World [Demo](https://irvlutd.github.io/Proto-CLIP#demo) | [Playlist](https://www.youtube.com/watch?v=CisrACRE7qE&list=PLgOC2wLNlACnuPrQV2Kxq2PtTAgUqdM-T)
 - [Results](https://irvlutd.github.io/Proto-CLIP#jos-fsc) for Joint Object Segmentation and Few-Shot Classification in the Real World
 - CLIP vs Proto-CLIP [t-SNE visualization](https://irvlutd.github.io/Proto-CLIP#clip-vs-proto-clip-t-sne)
