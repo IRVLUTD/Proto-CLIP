@@ -1,4 +1,5 @@
 from pathlib import Path
+import setuptools
 from setuptools import setup
 
 required = Path("requirements.txt").read_text(encoding="utf-8").split("\n")
@@ -10,7 +11,7 @@ setup(name='proto_clip_toolkit',
       version='0.1',
       url="https://github.com/IRVLUTD/Proto-CLIP",
       license="MIT",
-      packages=["proto_clip_toolkit"],
+      packages=setuptools.find_packages(),
       install_requires=required,
       include_package_data=True,
       python_requires=">=3.7"
