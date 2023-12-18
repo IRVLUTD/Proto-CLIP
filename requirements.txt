@@ -15,3 +15,5 @@ tabulate
 matplotlib
 torchmetrics
 info-nce-pytorch
+git+https://github.com/modestyachts/ImageNetV2_pytorch
+proto_clip_toolkit
