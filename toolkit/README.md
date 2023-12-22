@@ -4,7 +4,7 @@ This README explains each of the components of the Proto-CLIP toolkit and provid
 The Proto-CLIP toolkit can be accessed by running &nbsp; `pip install proto_clip_toolkit`.
 
 - Note: 
-	- First clone Proto-CLIP repository and then do `pip install proto_clip_toolkit`.
+	- First clone [Proto-CLIP](https://github.com/IRVLUTD/Proto-CLIP) repository and then do `pip install proto_clip_toolkit`.
 	- You are very likely to face PyAudio installtion errors. If you are on MacOS, follow this answer(https://stackoverflow.com/a/33851618) and on Linux follow the instructions here https://stackoverflow.com/a/66413041)
 
 The directory structure shown below describes each of the individual components of the Proto-CLIP toolkit:
