@@ -4,7 +4,7 @@ This README explains each of the components of the Proto-CLIP toolkit and provid
 The Proto-CLIP toolkit can be accessed by running &nbsp; `pip install proto_clip_toolkit`.
 
 - Note: 
-	- First clone Proto-CLIP repository and then do pip install `proto_clip_toolkit`.
+	- First clone Proto-CLIP repository and then do `pip install proto_clip_toolkit`.
 	- You are very likely to face PyAudio installtion errors. If you are on MacOS, follow this answer(https://stackoverflow.com/a/33851618) and on Linux follow the instructions here https://stackoverflow.com/a/66413041)
 
 The directory structure shown below describes each of the individual components of the Proto-CLIP toolkit:
@@ -32,11 +32,17 @@ The directory structure shown below describes each of the individual components 
 
 ## Proto-CLIP real world demo
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/IRVLUTD/Proto-CLIP/main/media/real-world.gif"><br>
+ Demo: User command oriented (<a href="https://fetchrobotics.borealtech.com/robotics-platforms/fetch-mobile-manipulator/?lang=en">Fetch</a>) robot grasping using <span style="font-variant: small-caps">Proto-CLIP</span> predictions.<br> More demos can be found in the <a href="https://www.youtube.com/watch?v=CisrACRE7qE&list=PLgOC2wLNlACnuPrQV2Kxq2PtTAgUqdM-T" target="_blank">playlist</a>.<br>
+ Please check the <a href="https://github.com/IRVLUTD/Proto-CLIP/tree/main/pretrained_ckpt">pretrained checkpoints</a> to use/work with the proto-clip-toolkit.<br><b>NOTE:</b> Use appropriate dataset w.r.t. the checkpoint.
+</p>
+
 The real world demo described in the paper is a culmination of multiple individual systems that need to initialized separately. Unfortunately, this means that the real world demo cannot be run using our pypi package alone. You would need to clone to repository and follow the instructions given below.
 
 Since we require multiple systems to be run simultaneously, we recommend using the [Terminator](https://github.com/gnome-terminator/terminator) terminal on Ubuntu. The diagram below describes the system in detail. 
 
-![The Block Diagram representation of the entire system. The numbers represent the order in which each node should be executed](./media/demo_block_diagram.jpg)
+![The Block Diagram representation of the entire system. The numbers represent the order in which each node should be executed](https://raw.githubusercontent.com/IRVLUTD/Proto-CLIP/main/toolkit/media/demo_block_diagram.jpg)
 
 
 The details on running each of the nodes is given below:
@@ -82,7 +88,7 @@ Then, run the following command to initialize the rviz window similar to our dem
 
  - You can find the terminator window below for reference. The numbers represent the sequence number mentioned before.
 
-![](./media/terminator_image.png)
+![](https://raw.githubusercontent.com/IRVLUTD/Proto-CLIP/main/toolkit/media/terminator_image.png)
 
 ## Part of Speech Tagging(POS)
 
@@ -189,6 +195,7 @@ plot_tsne_after(image_embeddings, text_embeddings, text_prompts)
 ### Out-Of-Distribution (OOD) datasets test
 
 - The OOD module allows you to test the Proto-CLIP model on OOD datasets, e.g. ImageNetV2, ImageNet-Sketch.
+- Do `pip install git+https://github.com/modestyachts/ImageNetV2_pytorch` to install `ImageNetV2`.
 - This is purely an API and we have provided the sample code to call the API below:
 
 ```
