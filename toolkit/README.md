@@ -1,7 +1,6 @@
 # Proto-CLIP Toolkit
 
-This README explains each of the components of the Proto-CLIP toolkit and provides details on how to run each of them. <br>
-The Proto-CLIP toolkit can be accessed by running &nbsp; `pip install proto_clip_toolkit`.
+This README explains each of the components of the Proto-CLIP toolkit and provides details on how to run each of them.
 
 - Note: 
 	- First clone [Proto-CLIP](https://github.com/IRVLUTD/Proto-CLIP) repository and then do `pip install proto_clip_toolkit`.
