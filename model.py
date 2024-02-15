@@ -7,6 +7,58 @@ import torch.nn.functional as F
 import torch.nn as nn
 import math
 from utils import *
+import loralib as lora
+
+
+class ProtoCLIP(nn.Module):
+    def __init__(self, visual_memory_keys, textual_memory_bank, N, K, ndim, dtype):
+        super().__init__()
+        self.N, self.K, self.ndim = N, K, ndim
+        self.visual_memory_keys = visual_memory_keys
+        self.textual_memory_bank = textual_memory_bank
+        self.visual_embeddings = lora.Embedding(num_embeddings=N*K, embedding_dim=ndim).cuda().to(dtype)
+        self.visual_embeddings.weight = nn.Parameter(visual_memory_keys.t().clone())
+        self.adapter = Adapter_LoRA(ndim, dtype=torch.half).cuda()
+        self.alpha = nn.Parameter(torch.tensor(0.5))  # Initialize alpha as 0.5
+        self.beta = nn.Parameter(torch.tensor(0.5))   # Initialize beta as 0.5
+        self.textual_embeddings = lora.Embedding(num_embeddings=N, embedding_dim=ndim).cuda().to(dtype)
+        self.textual_embeddings.weight = nn.Parameter(textual_memory_bank.t().clone())
+
+    def forward(self, zq_imgs):
+        zs_imgs = self.visual_embeddings.weight.view(-1, self.K, self.ndim)
+        zs_imgs = zs_imgs / zs_imgs.norm(dim=-1, keepdim=True)
+        z_img_proto = zs_imgs.mean(dim=1).float()
+        z_img_proto = z_img_proto / \
+            z_img_proto.norm(dim=-1, keepdim=True)
+
+        zq_imgs = self.adapter(zq_imgs).float()  # adapter
+
+        # use all classes
+        zs_text = self.textual_embeddings.weight
+
+        # normalization
+        zq_imgs = zq_imgs / zq_imgs.norm(dim=-1, keepdim=True)
+        zs_text = zs_text / zs_text.norm(dim=-1, keepdim=True)
+
+        # compute class prototypes
+        z_text_proto = zs_text.float()
+
+        # compute pairwise euclidean distances(query, prototypes)
+        xq_img_proto_dists = torch.cdist(
+            zq_imgs.float(), z_img_proto.float(), p=2).pow(2)
+        xq_text_proto_dists = torch.cdist(
+            zq_imgs.float(), z_text_proto.float(), p=2).pow(2)
+
+        # P(y=k|query_image,support_images)
+        p_i = F.softmax(self.beta*(-xq_img_proto_dists), dim=1)
+
+        #  P(y=k|query_image,support_text)
+        p_t = F.softmax(self.beta*(-xq_text_proto_dists), dim=1)
+
+        # total probability = alpha * p_image + (1-alpha) - p_text
+        p = self.alpha * p_i + (1-self.alpha) * p_t
+
+        return p, z_img_proto, z_text_proto
 
 
 class Adapter(nn.Module):
@@ -95,6 +147,23 @@ class Adapter_FC(nn.Module):
         return image_features
 
 
+class Adapter_LoRA(nn.Module):
+    def __init__(self, c_in, reduction=1, dtype=None):
+        super(Adapter_LoRA, self).__init__()
+        self.fc = nn.Sequential(
+            lora.Linear(c_in, c_in // reduction, bias=False, dtype=dtype),
+            # nn.LayerNorm(c_in // reduction, dtype=dtype),
+            lora.Linear(c_in // reduction, c_in, bias=False, dtype=dtype),
+            # nn.LayerNorm(c_in, dtype=dtype),
+        )
+
+    def forward(self, image_features):
+        x = self.fc(image_features)
+        ratio = 0.5  # to prevent overfitting
+        image_features = ratio * (ratio * x + (1 - ratio) * image_features)
+        return image_features
+
+    
 class Embedder(nn.Module):
     def __init__(self, vocab_size, d_model, weights, dtype=None):
         super().__init__()

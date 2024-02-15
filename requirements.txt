@@ -15,4 +15,5 @@ tabulate
 matplotlib
 torchmetrics
 info-nce-pytorch
-
+loralib
+focal_loss_torch
