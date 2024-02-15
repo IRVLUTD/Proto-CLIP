@@ -9,20 +9,73 @@ import math
 from utils import *
 import loralib as lora
 
+class Adapter_LoRA(nn.Module):
+    def __init__(self, c_in, reduction=4, dtype=None):
+        super(Adapter_LoRA, self).__init__()
+        self.fc = nn.Sequential(
+            lora.Linear(c_in, c_in, bias=False, dtype=dtype, r=reduction),
+            # nn.LayerNorm(c_in // reduction, dtype=dtype),
+            # lora.Linear(c_in // reduction, c_in, bias=False, dtype=dtype),
+            # nn.LayerNorm(c_in, dtype=dtype),
+        )
+        self.ratio = nn.Parameter(torch.tensor(0.5))   # Initialize ratio as 0.5
+
+    def forward(self, image_features):
+        x = self.fc(image_features)
+        image_features = self.ratio * x + (1 - self.ratio) * image_features
+        return image_features
+
+
+class AdapterLoRAConv(nn.Module):
+    def __init__(self, ndim):
+        super(AdapterLoRAConv, self).__init__()
+        self.ndim = ndim
+        # Define the convolutional layers
+        self.conv1 = lora.Conv2d(in_channels=3, out_channels=128, kernel_size=3, stride=1, padding=1)
+        # self.conv2 = lora.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=1, padding=1)
+        self.conv3 = lora.Conv2d(in_channels=128, out_channels=ndim, kernel_size=3, stride=1, padding=1)
+        
+        # Define pooling layers (for downsampling)
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
+
+
+    def forward(self, images):
+        B = images.shape[0]
+        output_tensor = self.conv1(images)
+        output_tensor = self.pool(output_tensor)
+        # output_tensor = self.conv2(output_tensor)
+        # output_tensor = self.pool(output_tensor)
+        output_tensor = self.conv3(output_tensor)
+        output_tensor = self.global_pool(output_tensor)
+
+        # Check the shape after global average pooling
+        print("Output tensor shape after global avg pooling:", output_tensor.shape)
+
+        # Reshape the output tensor to have shape [B, ndim]
+        output_tensor = output_tensor.view(B, self.ndim)
+        return output_tensor
+
 
 class ProtoCLIP(nn.Module):
-    def __init__(self, visual_memory_keys, textual_memory_bank, N, K, ndim, dtype):
+    def __init__(self, clip_model, visual_memory_keys, textual_memory_bank, N, K, ndim, dtype):
         super().__init__()
         self.N, self.K, self.ndim = N, K, ndim
         self.visual_memory_keys = visual_memory_keys
         self.textual_memory_bank = textual_memory_bank
         self.visual_embeddings = lora.Embedding(num_embeddings=N*K, embedding_dim=ndim).cuda().to(dtype)
         self.visual_embeddings.weight = nn.Parameter(visual_memory_keys.t().clone())
-        self.adapter = Adapter_LoRA(ndim, dtype=torch.half).cuda()
-        self.alpha = nn.Parameter(torch.tensor(0.5))  # Initialize alpha as 0.5
-        self.beta = nn.Parameter(torch.tensor(0.5))   # Initialize beta as 0.5
+        self.adapter = Adapter(ndim, 'conv-3x', dtype=torch.half).cuda()
+        # self.adapter = Adapter_LoRA(ndim, dtype=torch.half).cuda()
+        # self.adapter = AdapterLoRAConv(ndim).cuda()
+        # self.alpha = nn.Parameter(torch.tensor(0.5))  # Initialize alpha as 0.5
+        # self.beta = nn.Parameter(torch.tensor(1.0))   # Initialize beta as 0.5
+        self.alpha = 0.9
+        self.beta = 17
         self.textual_embeddings = lora.Embedding(num_embeddings=N, embedding_dim=ndim).cuda().to(dtype)
         self.textual_embeddings.weight = nn.Parameter(textual_memory_bank.t().clone())
+        self.clip_model = clip_model
+        self.clip_model.eval()
 
     def forward(self, zq_imgs):
         zs_imgs = self.visual_embeddings.weight.view(-1, self.K, self.ndim)
@@ -31,7 +84,10 @@ class ProtoCLIP(nn.Module):
         z_img_proto = z_img_proto / \
             z_img_proto.norm(dim=-1, keepdim=True)
 
-        zq_imgs = self.adapter(zq_imgs).float()  # adapter
+        # print(self.clip_model.encode_image(zq_imgs).shape, self.adapter(zq_imgs).shape)
+        # zq_imgs = self.clip_model.encode_image(zq_imgs) + self.adapter(zq_imgs).float()  # adapter
+
+        zq_imgs = self.adapter(zq_imgs)
 
         # use all classes
         zs_text = self.textual_embeddings.weight
@@ -144,23 +200,6 @@ class Adapter_FC(nn.Module):
         x = self.fc(image_features)
         ratio = 0.2  # to prevent overfitting
         image_features = ratio * x + (1 - ratio) * image_features
-        return image_features
-
-
-class Adapter_LoRA(nn.Module):
-    def __init__(self, c_in, reduction=1, dtype=None):
-        super(Adapter_LoRA, self).__init__()
-        self.fc = nn.Sequential(
-            lora.Linear(c_in, c_in // reduction, bias=False, dtype=dtype),
-            # nn.LayerNorm(c_in // reduction, dtype=dtype),
-            lora.Linear(c_in // reduction, c_in, bias=False, dtype=dtype),
-            # nn.LayerNorm(c_in, dtype=dtype),
-        )
-
-    def forward(self, image_features):
-        x = self.fc(image_features)
-        ratio = 0.5  # to prevent overfitting
-        image_features = ratio * (ratio * x + (1 - ratio) * image_features)
         return image_features
 
     

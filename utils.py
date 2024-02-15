@@ -89,11 +89,11 @@ def compute_loss_and_matches(p, target_inds, z_img_proto, z_text_proto, cfg):
 
     if len(cfg['losses']) == 0 or 'L1' in cfg['losses']:
 
-        # nloss = nn.NLLLoss()
-#         # loss += nloss(torch.log(p), target_inds)
+        nloss = nn.NLLLoss()
+        loss += nloss(torch.log(p), target_inds)
 
-        focalLoss = FocalLoss(gamma=1)
-        loss += focalLoss(p, target_inds)
+        # focalLoss = FocalLoss(gamma=0.75)
+        # loss += focalLoss(p, target_inds)
 
     if 'L2' in cfg['losses']:
         # L2: img with all text alignment loss
