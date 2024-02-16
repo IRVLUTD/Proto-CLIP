@@ -3,13 +3,13 @@ root_path: 'DATA'
 
 # ------ Basic Config ------
 shots: 16
-backbone: 'RN50'
+backbone: 'ViT-B/16'
 dataset: 'fewsol'
 only_test: False
 
 lr: 0.0001
 augment_epoch: 10
-train_epoch: 250
+train_epoch: 2000 # 250
 
 alpha: 0.9
 beta: 17

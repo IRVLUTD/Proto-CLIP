@@ -65,13 +65,12 @@ class ProtoCLIP(nn.Module):
         self.textual_memory_bank = textual_memory_bank
         self.visual_embeddings = lora.Embedding(num_embeddings=N*K, embedding_dim=ndim).cuda().to(dtype)
         self.visual_embeddings.weight = nn.Parameter(visual_memory_keys.t().clone())
-        self.adapter = Adapter(ndim, 'conv-3x', dtype=torch.half).cuda()
+        self.adapter = Adapter(ndim, 'fc', dtype=torch.half).cuda()
         # self.adapter = Adapter_LoRA(ndim, dtype=torch.half).cuda()
         # self.adapter = AdapterLoRAConv(ndim).cuda()
         # self.alpha = nn.Parameter(torch.tensor(0.5))  # Initialize alpha as 0.5
         # self.beta = nn.Parameter(torch.tensor(1.0))   # Initialize beta as 0.5
-        self.alpha = 0.9
-        self.beta = 17
+        self.beta = 17 #torch.tensor(1.0*ndim).sqrt()
         self.textual_embeddings = lora.Embedding(num_embeddings=N, embedding_dim=ndim).cuda().to(dtype)
         self.textual_embeddings.weight = nn.Parameter(textual_memory_bank.t().clone())
         self.clip_model = clip_model
@@ -112,7 +111,7 @@ class ProtoCLIP(nn.Module):
         p_t = F.softmax(self.beta*(-xq_text_proto_dists), dim=1)
 
         # total probability = alpha * p_image + (1-alpha) - p_text
-        p = self.alpha * p_i + (1-self.alpha) * p_t
+        p = F.softmax(p_i + p_t, dim=-1)
 
         return p, z_img_proto, z_text_proto
 
