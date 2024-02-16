@@ -1,6 +1,8 @@
-# custom
-tb_logs_v2/
+ .vscode/*
+ 2307.03073.pdf
 caches/
+plots/
+tb_logs*/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
