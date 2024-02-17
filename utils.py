@@ -92,8 +92,16 @@ def compute_loss_and_matches(p, target_inds, z_img_proto, z_text_proto, cfg):
         nloss = nn.NLLLoss()
         loss += nloss(torch.log(p), target_inds)
 
-        # focalLoss = FocalLoss(gamma=0.75)
+        # focalLoss = FocalLoss(gamma=0.99)
         # loss += focalLoss(p, target_inds)
+
+        # # Convert target_inds to one-hot encoding
+        # one_hot_target = torch.zeros_like(p)
+        # one_hot_target.scatter_(1, target_inds.unsqueeze(1), 1)
+
+        # # Compute the MSE loss
+        # mse_loss = torch.mean((p - one_hot_target) ** 2)
+        # loss += mse_loss
 
     if 'L2' in cfg['losses']:
         # L2: img with all text alignment loss

@@ -58,14 +58,17 @@ class AdapterLoRAConv(nn.Module):
 
 
 class ProtoCLIP(nn.Module):
-    def __init__(self, clip_model, visual_memory_keys, textual_memory_bank, N, K, ndim, dtype):
+    def __init__(self, clip_model, visual_memory_keys, visual_memory_values, textual_memory_bank, N, K, ndim, dtype):
         super().__init__()
         self.N, self.K, self.ndim = N, K, ndim
         self.visual_memory_keys = visual_memory_keys
         self.textual_memory_bank = textual_memory_bank
+        self.visual_memory_values = visual_memory_values
         self.visual_embeddings = lora.Embedding(num_embeddings=N*K, embedding_dim=ndim).cuda().to(dtype)
         self.visual_embeddings.weight = nn.Parameter(visual_memory_keys.t().clone())
-        self.adapter = Adapter(ndim, 'fc', dtype=torch.half).cuda()
+        # self.adapter = Adapter(ndim, 'conv-3x', dtype=torch.half).cuda()
+        self.fc = nn.Linear(self.ndim, self.N).cuda()
+
         # self.adapter = Adapter_LoRA(ndim, dtype=torch.half).cuda()
         # self.adapter = AdapterLoRAConv(ndim).cuda()
         # self.alpha = nn.Parameter(torch.tensor(0.5))  # Initialize alpha as 0.5
@@ -78,6 +81,8 @@ class ProtoCLIP(nn.Module):
 
     def forward(self, zq_imgs):
         zs_imgs = self.visual_embeddings.weight.view(-1, self.K, self.ndim)
+        zs_labels_one_hot = self.visual_memory_values.view(-1, self.K, self.N).float().mean(dim=1)
+
         zs_imgs = zs_imgs / zs_imgs.norm(dim=-1, keepdim=True)
         z_img_proto = zs_imgs.mean(dim=1).float()
         z_img_proto = z_img_proto / \
@@ -86,7 +91,8 @@ class ProtoCLIP(nn.Module):
         # print(self.clip_model.encode_image(zq_imgs).shape, self.adapter(zq_imgs).shape)
         # zq_imgs = self.clip_model.encode_image(zq_imgs) + self.adapter(zq_imgs).float()  # adapter
 
-        zq_imgs = self.adapter(zq_imgs)
+        # zq_imgs = self.adapter(zq_imgs)
+        zq_imgs = zq_imgs.float()
 
         # use all classes
         zs_text = self.textual_embeddings.weight
@@ -98,6 +104,16 @@ class ProtoCLIP(nn.Module):
         # compute class prototypes
         z_text_proto = zs_text.float()
 
+
+        # # attn = (Q.K^T)/sqrt(D)
+        # bs, D = zq_imgs.shape
+        # # # # qkv_attn = ((zq_imgs @ z_img_proto.T) / torch.sqrt(torch.tensor(D))).softmax(dim=-1) @ z_text_proto
+        # # # # # qk = ((zq_imgs @ z_img_proto.T) / (torch.tensor(D)).sqrt()).softmax(dim=-1)
+        # qk = ((zq_imgs @ z_img_proto.T)).softmax(dim=-1)
+        # zq_imgs = (qk @ z_text_proto) + zq_imgs
+
+        # zq_imgs = zq_imgs / zq_imgs.norm(dim=-1, keepdim=True)
+
         # compute pairwise euclidean distances(query, prototypes)
         xq_img_proto_dists = torch.cdist(
             zq_imgs.float(), z_img_proto.float(), p=2).pow(2)
@@ -105,13 +121,13 @@ class ProtoCLIP(nn.Module):
             zq_imgs.float(), z_text_proto.float(), p=2).pow(2)
 
         # P(y=k|query_image,support_images)
-        p_i = F.softmax(self.beta*(-xq_img_proto_dists), dim=1)
+        p_i = F.softmax((-xq_img_proto_dists), dim=1)
 
         #  P(y=k|query_image,support_text)
-        p_t = F.softmax(self.beta*(-xq_text_proto_dists), dim=1)
+        p_t = F.softmax((-xq_text_proto_dists), dim=1)
 
         # total probability = alpha * p_image + (1-alpha) - p_text
-        p = F.softmax(p_i + p_t, dim=-1)
+        p = (p_i * p_t).softmax(dim=-1) @ zs_labels_one_hot
 
         return p, z_img_proto, z_text_proto
 

@@ -112,7 +112,8 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
     cfg = search_scale_step(cfg)
     torch.autograd.set_detect_anomaly(True)
 
-    model = ProtoCLIP(clip_model, visual_memory_keys, textual_memory_bank, N, K, ndim, clip_model.dtype)
+    model = ProtoCLIP(clip_model, visual_memory_keys, visual_memory_values, textual_memory_bank, N, K, ndim, clip_model.dtype)
+    # model = ProtoCLIP(clip_model, visual_memory_keys, textual_memory_bank, N, K, ndim, clip_model.dtype)
 
     # params = list(model.visual_embeddings.parameters()) + \
     #     list(model.textual_embeddings.parameters()) + \
@@ -144,9 +145,9 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
 
         for epoch in tqdm(range(cfg['train_epoch'])):
             # Train
-            model.visual_embeddings.train()
-            model.textual_embeddings.train()
-            model.adapter.train()
+            # model.visual_embeddings.train()
+            # model.textual_embeddings.train()
+            # model.adapter.train()
 
             correct_samples, all_samples = 0, 0
             loss_list = []
@@ -235,7 +236,8 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
                     torch.arange(N, requires_grad=False).cuda())
                 z_text_proto = zs_text / zs_text.norm(dim=-1, keepdim=True)
 
-                val_features_adapt = model.adapter(val_features)
+                # val_features_adapt = model.adapter(val_features)
+                val_features_adapt = val_features
                 val_features_adapt = val_features_adapt / \
                     val_features_adapt.norm(dim=-1, keepdim=True)
 
@@ -291,7 +293,7 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
     zs_text = model.textual_embeddings.weight
     z_text_proto = zs_text / zs_text.norm(dim=-1, keepdim=True)
 
-    test_features = model.adapter(test_features)
+    # test_features = model.adapter(test_features)
     test_features = test_features / \
         test_features.norm(dim=-1, keepdim=True)
 

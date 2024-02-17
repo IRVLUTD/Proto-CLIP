@@ -142,7 +142,7 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_loader, te
             # Train
             model.visual_embeddings.train()
             model.textual_embeddings.train()
-            model.adapter.train()
+            # model.adapter.train()
 
             correct_samples, all_samples = 0, 0
             loss_list = []
@@ -206,7 +206,8 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_loader, te
                         torch.arange(N, requires_grad=False).cuda())
                     z_text_proto = zs_text / zs_text.norm(dim=-1, keepdim=True)
 
-                    val_features_adapt = model.adapter(val_images)
+                    # val_features_adapt = model.adapter(val_images)
+                    val_features_adapt = val_images
                     val_features_adapt = val_features_adapt / \
                         val_features_adapt.norm(dim=-1, keepdim=True)
 
@@ -269,7 +270,7 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_loader, te
         zs_text = model.textual_embeddings.weight
         z_text_proto = zs_text / zs_text.norm(dim=-1, keepdim=True)
 
-        test_features = model.adapter(test_features)
+        # test_features = model.adapter(test_features)
         test_features = test_features / \
             test_features.norm(dim=-1, keepdim=True)
 
