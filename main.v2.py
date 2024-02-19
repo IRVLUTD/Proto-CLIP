@@ -113,7 +113,7 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
     torch.autograd.set_detect_anomaly(True)
 
     model = ProtoCLIP(clip_model, visual_memory_keys, visual_memory_values, textual_memory_bank, N, K, ndim, clip_model.dtype)
-    # model = ProtoCLIP(clip_model, visual_memory_keys, textual_memory_bank, N, K, ndim, clip_model.dtype)
+    # model = ProtoCLIP(clip_model, model.visual_memory_keys, model.textual_memory_bank, N, K, ndim, clip_model.dtype)
 
     # params = list(model.visual_embeddings.parameters()) + \
     #     list(model.textual_embeddings.parameters()) + \
@@ -128,13 +128,91 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
 
     best_acc, best_epoch = 0.0, 0
 
+    best_acc, best_epoch = 0.0, 0
+
+    # Note: tip-a search_scale is not helpful for proto-clip
+    exp = 1
+    step_size = 1/10**exp
+    alpha_list = np.arange(0, 1, 1).round(exp)
+    # alpha_list = np.arange(0, 1+step_size, step_size).round(exp)
+    # beta_list = np.concatenate((np.arange(0.1, 1, 0.1),  np.arange(1, 21, 1.0)))
+    beta_list = np.arange(1, 21, 1.0)
+
+    val_acc_list = []
+    test_acc_list = []
+    train_acc_list = []
+
+    # search for best (alpha, beta) using zero shot valicdation accuracy on val set
     model_dir_root = get_model_dir_root(cfg)
     os.makedirs(model_dir_root, exist_ok=True)
+    val_path = os.path.join(
+        model_dir_root, f"zero_shot_hp_search_val_{beautify(cfg['backbone'])}_K_{cfg['shots']}.pkl")
+    test_path = os.path.join(
+        model_dir_root, f"zero_shot_hp_search_test_{beautify(cfg['backbone'])}_K_{cfg['shots']}.pkl")
+    train_path = os.path.join(
+        model_dir_root, f"zero_shot_hp_search_train_{beautify(cfg['backbone'])}_K_{cfg['shots']}.pkl")
 
     # Create a SummaryWriter object
     writer = SummaryWriter(
         log_dir=f"{cfg['logs_dir_path']}/{model_dir_root}/{'_'.join(cfg['losses'])}/aug_{cfg['augment_epoch']}/epochs_{cfg['train_epoch']}")
     train_labels = torch.argmax(visual_memory_values, dim=1)
+
+
+    # if os.path.exists(val_path) and os.path.exists(test_path) and os.path.exists(train_path):
+        # val_acc_list = load(val_path, 'hp based on val set')
+        # test_acc_list = load(test_path, 'hp based on test set')
+        # train_acc_list = load(train_path, 'hp based on test set')
+        # pass
+    # else:
+    with torch.no_grad():
+        z_img_proto = model.visual_memory_keys.t().view(-1, K, ndim).mean(dim=1)
+        z_text_proto = model.textual_memory_bank.t()
+
+        z_img_proto = z_img_proto / z_img_proto.norm(dim=-1, keepdim=True)
+        z_text_proto = z_text_proto / \
+            z_text_proto.norm(dim=-1, keepdim=True)
+        train_features = model.visual_memory_keys.t(
+        ) / model.visual_memory_keys.t().norm(dim=-1, keepdim=True)
+
+        val_features = val_features / \
+            val_features.norm(dim=-1, keepdim=True)
+        test_features = test_features / \
+            test_features.norm(dim=-1, keepdim=True)
+
+        best_beta = 0
+        train_acc, val_acc, test_acc = 0, 0, 0
+
+        for alpha in tqdm(alpha_list):
+            for beta in beta_list:
+                p,_,_=model(val_features, beta)
+                val_acc = (p.max(1)[1] == val_labels).float().mean()
+                val_acc_list.append([alpha, beta, val_acc.item()])
+                
+                p,_,_=model(test_features, beta)
+                test_acc = (p.max(1)[1] == test_labels).float().mean()
+                test_acc_list.append([alpha, beta, test_acc.item()])
+                p,_,_=model(train_features, beta)
+
+                train_acc = (p.max(1)[1] == train_labels).float().mean()
+                train_acc_list.append([alpha, beta, train_acc.item()])
+                print(beta, train_acc, val_acc, test_acc)
+
+        val_acc_list = np.array(val_acc_list)
+        test_acc_list = np.array(test_acc_list)
+        train_acc_list = np.array(train_acc_list)
+
+    # _, best_alpha, best_beta, _, _ = \
+    #     plot_zero_shot_alpha_beta(val_acc_list[:, 0], val_acc_list[:, 1], val_acc_list[:, 2],
+    #                               test_acc_list[:, 2], train_acc_list[:, 2], cfg, writer, 0)
+
+
+    model_dir_root = get_model_dir_root(cfg)
+    os.makedirs(model_dir_root, exist_ok=True)
+
+    # # Create a SummaryWriter object
+    # writer = SummaryWriter(
+    #     log_dir=f"{cfg['logs_dir_path']}/{model_dir_root}/{'_'.join(cfg['losses'])}/aug_{cfg['augment_epoch']}/epochs_{cfg['train_epoch']}")
+    # train_labels = torch.argmax(visual_memory_values, dim=1)
 
 
     if not cfg['only_test']:
@@ -148,6 +226,8 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
             # model.visual_embeddings.train()
             # model.textual_embeddings.train()
             # model.adapter.train()
+
+            model.train()
 
             correct_samples, all_samples = 0, 0
             loss_list = []
@@ -181,8 +261,8 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
                     query_index.extend(cls * K + query)
                     zq_labels.extend([cls] * len(query))
 
-                zq_imgs = visual_memory_keys.t()[query_index]  # N_qxC
-                p, z_img_proto, z_text_proto = model(zq_imgs)
+                zq_imgs = model.visual_memory_keys.t()[query_index]  # N_qxC
+                p, z_img_proto, z_text_proto = model(zq_imgs, best_beta)
                 zq_labels = torch.as_tensor(zq_labels).cuda()
                 matches, train_loss, neg_log_loss, img2txt_align_loss, txt2img_align_loss, img_inter_cluster_loss, txt_inter_cluster_loss = \
                     compute_loss_and_matches(
@@ -243,7 +323,7 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
 
                 
                 
-                p, z_img_proto, z_text_proto = model(val_features_adapt)
+                p, z_img_proto, z_text_proto = model(val_features_adapt, best_beta)
 
                 pred_p, y_hat = p.max(dim=1)
                 matches = (y_hat == val_labels).float().sum()
@@ -251,8 +331,21 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
 
                 val_acc = (p.max(1)[1] == val_labels).float().mean()
 
+                # test_features = model.adapter(test_features)
+                test_features = test_features / \
+                    test_features.norm(dim=-1, keepdim=True)
+
+
+                p, z_img_proto, z_text_proto = model(test_features, best_beta)
+
+                test_acc = (p.max(1)[1] == test_labels).float().mean()
+
                 print("**** Proto-CLIP's val accuracy: {:.2f}% | loss: {:.2f}***\n".format(
                     val_acc*100, neg_log_loss_val))
+
+                print(
+                    "**** Fixed-alp-beta: Proto-CLIP's test accuracy: {:.2f}% ****\n".format(test_acc*100))
+
 
                 model_dir_root = get_model_dir_root(cfg)
 
@@ -274,6 +367,7 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
             writer.add_scalar('Loss/train', train_loss, epoch)
             writer.add_scalar('Accuracy/train', train_acc, epoch)
             writer.add_scalar('HP/lr', current_lr, epoch)
+
 
         print(
             f"Best model: best_val_acc = {best_acc*100: .2f}, best_val_epoch = {best_epoch}")
@@ -298,7 +392,7 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
         test_features.norm(dim=-1, keepdim=True)
 
 
-    p, z_img_proto, z_text_proto = model(test_features)
+    p, z_img_proto, z_text_proto = model(test_features, best_beta)
 
     test_acc = (p.max(1)[1] == test_labels).float().mean()
 

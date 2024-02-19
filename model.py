@@ -57,6 +57,67 @@ class AdapterLoRAConv(nn.Module):
         return output_tensor
 
 
+class RelationScoreNetwork(nn.Module):
+    def __init__(self, input_channels, output_classes):
+        super(RelationScoreNetwork, self).__init__()
+        self.output_classes = output_classes
+        self.conv1 = nn.Conv1d(input_channels, 64, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm1d(64)
+        self.relu1 = nn.ReLU()
+        self.maxpool1 = nn.MaxPool1d(kernel_size=2, stride=2)
+        
+        self.conv2 = nn.Conv1d(64, 128, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm1d(128)
+        self.relu2 = nn.ReLU()
+        self.maxpool2 = nn.MaxPool1d(kernel_size=2, stride=2)
+        
+        # Calculate the output size of the second convolutional layer
+        # after max pooling (assuming input size [1, D])
+        self.conv_output_size = None
+        
+        self.fc1 = None
+        self.fc2 = None
+        self.fc3 = None
+        self.softmax = nn.Softmax(dim=1)
+
+    def forward(self, x):
+        # Expected input size: [B, N, D]
+        B, N, D = x.size()
+        # Reshape to [B * N, D]
+        x = x.view(B * N, D)
+        x = x.unsqueeze(1)  # Add channel dimension
+        # Convolutional Layer 1
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu1(x)
+        x = self.maxpool1(x)
+        
+        # Convolutional Layer 2
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.relu2(x)
+        x = self.maxpool2(x)
+        
+        # Flatten before fully connected layers
+        x = x.view(B * N, -1)
+        
+        # Calculate the output size of the second convolutional layer
+        if self.conv_output_size is None:
+            self.conv_output_size = x.size(1)
+            self.fc1 = nn.Linear(self.conv_output_size, 256)
+            self.fc2 = nn.Linear(256, self.output_classes)
+            self.fc3 = nn.Linear(self.output_classes**2, self.output_classes)
+        
+        # Fully connected layers
+        x = self.fc1(x)
+        x = self.fc2(x)
+        x = x.view(B, -1)
+        x = self.fc3(x)
+        x = self.softmax(x)
+        
+        return x
+
+
 class ProtoCLIP(nn.Module):
     def __init__(self, clip_model, visual_memory_keys, visual_memory_values, textual_memory_bank, N, K, ndim, dtype):
         super().__init__()
@@ -64,72 +125,229 @@ class ProtoCLIP(nn.Module):
         self.visual_memory_keys = visual_memory_keys
         self.textual_memory_bank = textual_memory_bank
         self.visual_memory_values = visual_memory_values
-        self.visual_embeddings = lora.Embedding(num_embeddings=N*K, embedding_dim=ndim).cuda().to(dtype)
+        self.zs_labels_one_hot = self.visual_memory_values.view(-1, self.K, self.N).float().mean(dim=1)
+        self.visual_embeddings = nn.Embedding(num_embeddings=N*K, embedding_dim=ndim).cuda().to(dtype)
         self.visual_embeddings.weight = nn.Parameter(visual_memory_keys.t().clone())
-        # self.adapter = Adapter(ndim, 'conv-3x', dtype=torch.half).cuda()
+        self.adapter_conv_3x = Adapter(ndim, 'conv-3x').cuda()
+        self.adapter_conv_2x = Adapter(ndim, 'conv-3x').cuda()
+        self.adapter_fc = Adapter_FC(ndim).cuda()
+        # self.adapter = Adapter_FC(ndim, dtype=torch.half).cuda()
         self.fc = nn.Linear(self.ndim, self.N).cuda()
+        # self.relnet =RelationScoreNetwork(1, self.N).cuda()
 
-        # self.adapter = Adapter_LoRA(ndim, dtype=torch.half).cuda()
+        # self.adapter = Adapter_LoRA(ndim, dtype=torch.half).cuda() 
         # self.adapter = AdapterLoRAConv(ndim).cuda()
         # self.alpha = nn.Parameter(torch.tensor(0.5))  # Initialize alpha as 0.5
         # self.beta = nn.Parameter(torch.tensor(1.0))   # Initialize beta as 0.5
-        self.beta = 17 #torch.tensor(1.0*ndim).sqrt()
-        self.textual_embeddings = lora.Embedding(num_embeddings=N, embedding_dim=ndim).cuda().to(dtype)
+        self.beta = torch.tensor(1.0*ndim).sqrt()
+        self.textual_embeddings = nn.Embedding(num_embeddings=N, embedding_dim=ndim).cuda().to(dtype)
         self.textual_embeddings.weight = nn.Parameter(textual_memory_bank.t().clone())
-        self.clip_model = clip_model
-        self.clip_model.eval()
 
-    def forward(self, zq_imgs):
-        zs_imgs = self.visual_embeddings.weight.view(-1, self.K, self.ndim)
-        zs_labels_one_hot = self.visual_memory_values.view(-1, self.K, self.N).float().mean(dim=1)
+        self.q_proj = lora.Linear(ndim, ndim, r=8).cuda()
+        self.k_proj = lora.Linear(ndim, ndim, r=8).cuda()
+        self.v_proj = lora.Linear(ndim, ndim, r=8).cuda()
+
+        self.clip_model = clip_model
+        self.freeze_clip()
+
+
+    def freeze_clip(self):
+        for param in self.clip_model.parameters():
+            param.requires_grad = False
+
+    def get_memory_banks(self):
+        zs_imgs = self.visual_embeddings.weight.view(-1, self.K, self.ndim).float()
+        zs_text = self.textual_embeddings.weight.float()
+        return zs_imgs, zs_text
+
+
+    def compute_prototypes(self):
+        # This is a simple average over support embeddings
+        zs_imgs, zs_text = self.get_memory_banks()
+        zs_imgs = zs_imgs / zs_imgs.norm(dim=-1, keepdim=True)
+        z_img_proto = zs_imgs.mean(dim=1)
+        z_img_proto = z_img_proto / z_img_proto.norm(dim=-1, keepdim=True)
+
+        # use all classes, normalization, compute class prototypes
+        z_text_proto = zs_text / zs_text.norm(dim=-1, keepdim=True)
+
+        return z_img_proto, z_text_proto
+
+
+    def compute_attention_prototypes(self, zq_imgs):
+        # This is an attension score based average over the support embeddings
+        zs_imgs, zs_text = self.get_memory_banks()
+
+        # print(zs_imgs.shape, zs_text.shape)
+
+        zs_imgs = zs_imgs.view(self.N * self.K, self.ndim)
+        attn_iq = zq_imgs @ zs_imgs.t()
+        attn_tq = zq_imgs @ zs_text.t()
+
+        zs_imgs = attn_iq.unsqueeze(-1) * zs_imgs
+        zs_text = attn_tq.unsqueeze(-1) * zs_text
+        # print(zs_imgs.shape, zs_text.shape)
+
+        zs_imgs = zs_imgs.view(-1, self.N, self.K, self.ndim)
 
         zs_imgs = zs_imgs / zs_imgs.norm(dim=-1, keepdim=True)
-        z_img_proto = zs_imgs.mean(dim=1).float()
-        z_img_proto = z_img_proto / \
-            z_img_proto.norm(dim=-1, keepdim=True)
+        z_img_proto = zs_imgs.mean(dim=2).mean(dim=0)
+        # print(z_img_proto.shape, zs_text.shape, "ss")
+
+        z_img_proto = z_img_proto / z_img_proto.norm(dim=-1, keepdim=True)
+
+        zs_text = zs_text.mean(dim=0)
+        
+        # use all classes, normalization, compute class prototypes
+        z_text_proto = zs_text / zs_text.norm(dim=-1, keepdim=True)
+
+        # print(zs_imgs.shape, zs_text.shape)
+
+        return z_text_proto, z_text_proto
+
+    def get_memory_one_hot_labels(self):
+        return self.zs_labels_one_hot
+
+
+    def forward(self, zq_imgs, beta):
 
         # print(self.clip_model.encode_image(zq_imgs).shape, self.adapter(zq_imgs).shape)
         # zq_imgs = self.clip_model.encode_image(zq_imgs) + self.adapter(zq_imgs).float()  # adapter
 
-        # zq_imgs = self.adapter(zq_imgs)
+        beta=17 #self.beta
+
+
+        z_img_proto, z_text_proto =  self.compute_prototypes()
+        # z_img_proto, z_text_proto =  self.compute_attention_prototypes(zq_imgs)
+        zs_one_hot_labels = self.get_memory_one_hot_labels()
+        # print(zs_one_hot_labels)
+
+        # query adapter
+        # zq_imgs = self.adapter(zq_imgs) #+ zq_imgs
+        # zq_imgs = zq + attention(zq.half(), z_img_proto.half(), z_text_proto.half(), self.ndim).float() + zq_imgs
+        # zq_imgs = self.adapter_fc(self.adapter_conv_3x(self.adapter_conv_2x(zq_imgs) + zq_imgs)+ zq_imgs) + zq_imgs
+        # zq_imgs = self.adapter_conv_3x(zq_imgs) + attention(zq_imgs.half(), z_img_proto.half(), z_text_proto.half(), self.ndim).float() + zq_imgs
+
+        # query adapter 2
+        # zq_imgs = zq_imgs.float()
+        # q = self.q_proj(zq_imgs)
+        # k = self.k_proj(z_img_proto)
+        # v = self.v_proj(z_text_proto)
+
+        # qk = (q @ k.t() ).float().softmax(dim=-1)
+        # qkv = qk @ v #+ zq_imgs 
+        # qkv = qkv / qkv.norm(dim=-1, keepdim=True)
+
+        # zq_imgs = self.adapter_conv_3x(zq_imgs) + qkv + zq_imgs
+        # zq_imgs = zq_imgs / zq_imgs.norm(dim=-1, keepdim=True)
+        
+
+        # query adapter 3
         zq_imgs = zq_imgs.float()
+        zq_imgs = self.adapter_conv_2x(zq_imgs)
+        # zq_imgs = self.adapter_conv_3x(zq_imgs) + attention(zq_imgs.half(), z_img_proto.half(), z_img_proto.half(), self.ndim).float() + zq_imgs
 
-        # use all classes
-        zs_text = self.textual_embeddings.weight
 
-        # normalization
-        zq_imgs = zq_imgs / zq_imgs.norm(dim=-1, keepdim=True)
-        zs_text = zs_text / zs_text.norm(dim=-1, keepdim=True)
+        # z_img_txt_proto_concatenated = torch.cat((z_img_proto, z_text_proto), dim=1)
 
-        # compute class prototypes
-        z_text_proto = zs_text.float()
+        # # Repeat tensor B along a new dimension to match the first dimension of tensor A
+        # zq_imgs_expanded = zq_imgs.unsqueeze(1).expand(-1, z_img_txt_proto_concatenated.size(0), -1)
 
+        # q_img_txt = torch.cat((z_img_txt_proto_concatenated.unsqueeze(0).expand(zq_imgs.size(0), -1, -1), zq_imgs_expanded), dim=2)
+
+        # logits = self.relnet(q_img_txt.float())
+
+        # p = logits.softmax(dim=-1)
 
         # # attn = (Q.K^T)/sqrt(D)
-        # bs, D = zq_imgs.shape
+        bs, D = zq_imgs.shape
         # # # # qkv_attn = ((zq_imgs @ z_img_proto.T) / torch.sqrt(torch.tensor(D))).softmax(dim=-1) @ z_text_proto
         # # # # # qk = ((zq_imgs @ z_img_proto.T) / (torch.tensor(D)).sqrt()).softmax(dim=-1)
         # qk = ((zq_imgs @ z_img_proto.T)).softmax(dim=-1)
         # zq_imgs = (qk @ z_text_proto) + zq_imgs
-
         # zq_imgs = zq_imgs / zq_imgs.norm(dim=-1, keepdim=True)
 
+        # q = self.q_proj(zq_imgs)
+        # k = self.k_proj(z_img_proto)
+        # v = self.v_proj(z_text_proto)
+
+        # qk = (q @ k.t() ).softmax(dim=-1)
+        # zq_imgs = qk @ v #+ zq_imgs
+
+        # zq_imgs = attention(zq_imgs, z_img_proto, z_text_proto, self.ndim) + zq_imgs
+
+        # zq_imgs = zq_imgs / zq_imgs.norm(dim=-1, keepdim=True)
+        
         # compute pairwise euclidean distances(query, prototypes)
+        pow = 2
         xq_img_proto_dists = torch.cdist(
-            zq_imgs.float(), z_img_proto.float(), p=2).pow(2)
+            zq_imgs.float(), z_img_proto.float(), p=pow).pow(pow)
         xq_text_proto_dists = torch.cdist(
-            zq_imgs.float(), z_text_proto.float(), p=2).pow(2)
+            zq_imgs.float(), z_text_proto.float(), p=pow).pow(pow)
+
+        
+        # print(xq_img_proto_dists.shape, xq_text_proto_dists.shape)
+
 
         # P(y=k|query_image,support_images)
-        p_i = F.softmax((-xq_img_proto_dists), dim=1)
+        # p_i = F.softmax(self.beta * (-xq_img_proto_dists), dim=-1)
+        p_i = F.softmax(beta * (-xq_img_proto_dists), dim=-1)
 
         #  P(y=k|query_image,support_text)
-        p_t = F.softmax((-xq_text_proto_dists), dim=1)
+        # p_t = F.softmax(self.beta * (-xq_text_proto_dists), dim=-1)
+        p_t = F.softmax(beta * (-xq_text_proto_dists), dim=-1)
+
 
         # total probability = alpha * p_image + (1-alpha) - p_text
-        p = (p_i * p_t).softmax(dim=-1) @ zs_labels_one_hot
+        # p = (p_i * p_t).softmax(dim=-1) #@ zs_one_hot_labels
+        p = (p_i * p_t)
+
+        # label smoothing: https://www.sciencedirect.com/science/article/pii/S0893608022003689
+        eps = 0.5
+
+        p = ((1-eps) * p + eps / self.N).softmax(dim=-1)
 
         return p, z_img_proto, z_text_proto
+
+
+    # def forward(self, zq_imgs):
+    #     zs_imgs = self.visual_embeddings.weight.view(-1, self.K, self.ndim)
+    #     zs_imgs = zs_imgs / zs_imgs.norm(dim=-1, keepdim=True)
+    #     z_img_proto = zs_imgs.mean(dim=1).float()
+    #     z_img_proto = z_img_proto / \
+    #         z_img_proto.norm(dim=-1, keepdim=True)
+
+    #     # print(self.clip_model.encode_image(zq_imgs).shape, self.adapter(zq_imgs).shape)
+    #     # zq_imgs = self.clip_model.encode_image(zq_imgs) + self.adapter(zq_imgs).float()  # adapter
+
+    #     zq_imgs = self.adapter(zq_imgs)
+
+    #     # use all classes
+    #     zs_text = self.textual_embeddings.weight
+
+    #     # normalization
+    #     zq_imgs = zq_imgs / zq_imgs.norm(dim=-1, keepdim=True)
+    #     zs_text = zs_text / zs_text.norm(dim=-1, keepdim=True)
+
+    #     # compute class prototypes
+    #     z_text_proto = zs_text.float()
+
+    #     # compute pairwise euclidean distances(query, prototypes)
+    #     xq_img_proto_dists = torch.cdist(
+    #         zq_imgs.float(), z_img_proto.float(), p=2).pow(2)
+    #     xq_text_proto_dists = torch.cdist(
+    #         zq_imgs.float(), z_text_proto.float(), p=2).pow(2)
+
+    #     # P(y=k|query_image,support_images)
+    #     p_i = F.softmax(self.beta*(-xq_img_proto_dists), dim=1)
+
+    #     #  P(y=k|query_image,support_text)
+    #     p_t = F.softmax(self.beta*(-xq_text_proto_dists), dim=1)
+
+    #     # total probability = alpha * p_image + (1-alpha) - p_text
+    #     p = ( p_i + p_t ).softmax(dim=-1)
+
+    #     return p, z_img_proto, z_text_proto
 
 
 class Adapter(nn.Module):
@@ -184,7 +402,7 @@ class Adapter(nn.Module):
         identity = x
 
         out = self.conv1(x)
-        out = self.bn1(out)
+        out = self.bn1(out) 
 
         if self.c_type == 'conv-3x':
             out = self.conv2(out)
@@ -213,9 +431,10 @@ class Adapter_FC(nn.Module):
 
     def forward(self, image_features):
         x = self.fc(image_features)
-        ratio = 0.2  # to prevent overfitting
-        image_features = ratio * x + (1 - ratio) * image_features
-        return image_features
+        # ratio = 0.2  # to prevent overfitting
+        x = x + image_features# ratio * x + (1 - ratio) * image_features
+        x = F.softmax(x, dim=-1)
+        return x
 
     
 class Embedder(nn.Module):

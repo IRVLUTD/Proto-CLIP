@@ -3,7 +3,7 @@ root_path: 'DATA'
 
 # ------ Basic Config ------
 shots: 16
-backbone: 'RN101'
+backbone: 'RN50'
 dataset: 'fewsol'
 only_test: False
 
