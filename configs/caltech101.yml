@@ -9,7 +9,7 @@ only_test: False
 
 lr: 0.0001
 augment_epoch: 10
-train_epoch: 2000
+train_epoch: 500 #250 #2000
 
 alpha: 0.8
 beta: 9

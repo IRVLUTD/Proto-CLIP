@@ -218,8 +218,8 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
     if not cfg['only_test']:
 
         # define class sampling upper bound and lower bound
-        class_upper = int(N * 0.9)
-        class_lower = max(int(N * 0.4), 1)
+        class_upper = int(N * 0.4)
+        class_lower = max(int(N * 0.2), 1)
 
         for epoch in tqdm(range(cfg['train_epoch'])):
             # Train
@@ -266,7 +266,7 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
                 zq_labels = torch.as_tensor(zq_labels).cuda()
                 matches, train_loss, neg_log_loss, img2txt_align_loss, txt2img_align_loss, img_inter_cluster_loss, txt_inter_cluster_loss = \
                     compute_loss_and_matches(
-                        p, zq_labels, z_img_proto, z_text_proto, cfg)
+                        p, zq_imgs, zq_labels, z_img_proto, z_text_proto, cfg)
 
                 mode = 'train'
                 if neg_log_loss is not None:

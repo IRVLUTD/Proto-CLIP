@@ -78,7 +78,7 @@ def InfoNCELoss(A, B):
     return loss(A, B)
 
 
-def compute_loss_and_matches(p, target_inds, z_img_proto, z_text_proto, cfg):
+def compute_loss_and_matches(p, zq_imgs, target_inds, z_img_proto, z_text_proto, cfg):
     """
         Computes loss and accuracy for one episode
     """
@@ -92,10 +92,15 @@ def compute_loss_and_matches(p, target_inds, z_img_proto, z_text_proto, cfg):
         nloss = nn.NLLLoss()
         loss += nloss(torch.log(p), target_inds)
 
+        # attn_i = zq_imgs @ z_img_proto.half().t()
+        # attn_t = zq_imgs @ z_text_proto.half().t()
+
+        # loss += nloss((attn_i * attn_t).softmax(-1).log(), target_inds)
+
         # focalLoss = FocalLoss(gamma=0.99)
         # loss += focalLoss(p, target_inds)
 
-        # # Convert target_inds to one-hot encoding
+        # Convert target_inds to one-hot encoding
         # one_hot_target = torch.zeros_like(p)
         # one_hot_target.scatter_(1, target_inds.unsqueeze(1), 1)
 
