@@ -18,7 +18,7 @@ import clip
 from utils import *
 from datasets.imagenet import ImageNet, get_random_train_tfm
 from torch.utils.tensorboard import SummaryWriter
-from model import Adapter, Adapter_FC, Adapter_LoRA, ProtoCLIP
+from model import ProtoCLIP
 import loralib as lora
 
 
@@ -122,9 +122,11 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
     params = model.parameters()
 
     optimizer = torch.optim.AdamW(
-        params, lr=cfg['lr'], eps=1e-4, weight_decay=0.05)
+        params, lr=cfg['lr'], eps=1e-4, weight_decay=0.005)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, cfg['train_epoch'] * NxK)
+        optimizer, cfg['train_epoch'] * 2)
+    # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, cfg['train_epoch'])
+    
 
     best_acc, best_epoch = 0.0, 0
 
@@ -184,15 +186,15 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
 
         for alpha in tqdm(alpha_list):
             for beta in beta_list:
-                p,_,_=model(val_features, beta)
+                p,_,_=model(val_features, val_labels, beta)
                 val_acc = (p.max(1)[1] == val_labels).float().mean()
                 val_acc_list.append([alpha, beta, val_acc.item()])
                 
-                p,_,_=model(test_features, beta)
+                p,_,_=model(test_features, test_labels, beta)
                 test_acc = (p.max(1)[1] == test_labels).float().mean()
                 test_acc_list.append([alpha, beta, test_acc.item()])
-                p,_,_=model(train_features, beta)
 
+                p,_,_=model(train_features, train_labels, beta)
                 train_acc = (p.max(1)[1] == train_labels).float().mean()
                 train_acc_list.append([alpha, beta, train_acc.item()])
                 print(beta, train_acc, val_acc, test_acc)
@@ -262,7 +264,7 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
                     zq_labels.extend([cls] * len(query))
 
                 zq_imgs = model.visual_memory_keys.t()[query_index]  # N_qxC
-                p, z_img_proto, z_text_proto = model(zq_imgs, best_beta)
+                p, z_img_proto, z_text_proto = model(zq_imgs, zq_labels, best_beta)
                 zq_labels = torch.as_tensor(zq_labels).cuda()
                 matches, train_loss, neg_log_loss, img2txt_align_loss, txt2img_align_loss, img_inter_cluster_loss, txt_inter_cluster_loss = \
                     compute_loss_and_matches(
@@ -323,7 +325,7 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
 
                 
                 
-                p, z_img_proto, z_text_proto = model(val_features_adapt, best_beta)
+                p, z_img_proto, z_text_proto = model(val_features_adapt, val_labels, best_beta)
 
                 pred_p, y_hat = p.max(dim=1)
                 matches = (y_hat == val_labels).float().sum()

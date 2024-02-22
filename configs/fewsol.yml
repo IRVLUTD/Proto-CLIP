@@ -7,9 +7,9 @@ backbone: 'RN50'
 dataset: 'fewsol'
 only_test: False
 
-lr: 0.0001
+lr: 0.001 #0.0008
 augment_epoch: 10
-train_epoch: 250
+train_epoch: 150
 
 alpha: 0.9
 beta: 17

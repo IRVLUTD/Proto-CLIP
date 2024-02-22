@@ -17,7 +17,6 @@ import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
 import torchvision.transforms.functional as TF
 from info_nce import InfoNCE
-from focal_loss.focal_loss import FocalLoss
 
 
 def get_seed():
@@ -78,6 +77,9 @@ def InfoNCELoss(A, B):
     return loss(A, B)
 
 
+from metrics import ArcMarginProduct
+
+
 def compute_loss_and_matches(p, zq_imgs, target_inds, z_img_proto, z_text_proto, cfg):
     """
         Computes loss and accuracy for one episode
@@ -91,6 +93,12 @@ def compute_loss_and_matches(p, zq_imgs, target_inds, z_img_proto, z_text_proto,
 
         nloss = nn.NLLLoss()
         loss += nloss(torch.log(p), target_inds)
+
+        N, ndim = z_img_proto.shape
+
+        # arcloss = ArcMarginProduct(in_features=ndim, out_features=N).cuda()
+        # loss += arcloss(zq_imgs, target_inds)
+
 
         # attn_i = zq_imgs @ z_img_proto.half().t()
         # attn_t = zq_imgs @ z_text_proto.half().t()
