@@ -192,6 +192,7 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
                 
                 p,_,_=model(test_features, test_labels, beta)
                 test_acc = (p.max(1)[1] == test_labels).float().mean()
+                
                 test_acc_list.append([alpha, beta, test_acc.item()])
 
                 p,_,_=model(train_features, train_labels, beta)

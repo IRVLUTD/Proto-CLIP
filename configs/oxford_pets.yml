@@ -2,14 +2,14 @@
 root_path: 'DATA'
 
 # ------ Basic Config ------
-shots: 16
+shots: 1
 backbone: 'RN50'
 dataset: 'oxford_pets'
 only_test: False
 
-lr: 0.0001
+lr: 0.001
 augment_epoch: 10
-train_epoch: 500 #2000
+train_epoch: 250 #2000
 
 alpha: 0.4
 beta: 18

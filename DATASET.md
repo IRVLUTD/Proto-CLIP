@@ -69,6 +69,7 @@ oxford_pets/
 ```
 
 ### StanfordCars
+- Stanford link not working as of 02/22/24. Use [this](https://github.com/pytorch/vision/issues/7545#issuecomment-1575410733) instead.
 - Create a folder named `stanford_cars/` under `$DATA`.
 - Download the train images http://ai.stanford.edu/~jkrause/car196/cars_train.tgz.
 - Download the test images http://ai.stanford.edu/~jkrause/car196/cars_test.tgz.

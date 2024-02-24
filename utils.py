@@ -51,7 +51,7 @@ def load(filepath, msg):
         return pickle.load(handle)
 
 
-def get_textual_memory_bank(cfg, classnames, template, clip_model):
+def get_textual_memory_bank(cfg, classnames, template, clip_model, gpt_prompts=None):
     msg = "text_memory_bank"
     model_dir_root = get_model_dir_root(cfg)
     os.makedirs(model_dir_root, exist_ok=True)
@@ -63,8 +63,12 @@ def get_textual_memory_bank(cfg, classnames, template, clip_model):
         return text_prompts, load(path, msg)
     else:
         # Textual features
-        text_prompts, textual_memory_bank = clip_classifier(
-            classnames, template, clip_model)
+        if gpt_prompts is not None:
+            text_prompts, textual_memory_bank = clip_gpt_classifier(
+            classnames, template, gpt_prompts, clip_model)
+        else:
+            text_prompts, textual_memory_bank = clip_classifier(
+                classnames, template, clip_model)
         save(textual_memory_bank, path, msg)
         return text_prompts, textual_memory_bank
 
@@ -75,9 +79,6 @@ def InfoNCELoss(A, B):
     """
     loss = InfoNCE()
     return loss(A, B)
-
-
-from metrics import ArcMarginProduct
 
 
 def compute_loss_and_matches(p, zq_imgs, target_inds, z_img_proto, z_text_proto, cfg):
@@ -286,6 +287,27 @@ def clip_classifier(classnames, template, clip_model):
             # Tokenize the prompts
             classname = classname.replace('_', ' ')
             texts = [t.format(classname) for t in template]
+            texts = clip.tokenize(texts).cuda()
+            # prompt ensemble for ImageNet
+            class_embeddings = clip_model.encode_text(texts)
+            class_embeddings /= class_embeddings.norm(dim=-1, keepdim=True)
+            class_embedding = class_embeddings.mean(dim=0)
+            class_embedding /= class_embedding.norm()
+            clip_weights.append(class_embedding)
+
+        clip_weights = torch.stack(clip_weights, dim=1).cuda()
+    return classnames, clip_weights
+
+
+def clip_gpt_classifier(classnames, template, gpt_prompts, clip_model):
+    with torch.no_grad():
+        clip_weights = []
+        for classname in classnames:
+            # Tokenize the prompts
+            classname = classname.replace('_', ' ')
+            texts = []
+            for t in gpt_prompts[classname]:
+                texts.append(t)
             texts = clip.tokenize(texts).cuda()
             # prompt ensemble for ImageNet
             class_embeddings = clip_model.encode_text(texts)

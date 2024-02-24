@@ -5,22 +5,30 @@ from __future__ import division
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
+import torch.nn.init
 import math
 from utils import *
 import loralib as lora
+from metrics import ArcMarginProduct
 
 
 class Adapter_FC(nn.Module):
     def __init__(self, c_in, reduction=1, dropout_prob=0.1,dtype=None):
         super(Adapter_FC, self).__init__()
+        
+        # Initialize linear layers with Xavier initialization
+        def init_weights(m):
+            if isinstance(m, nn.Linear):
+                torch.nn.init.xavier_uniform_(m.weight)
+        
         self.fc1 = nn.Sequential(
             nn.Linear(c_in, c_in // reduction, bias=False, dtype=dtype), # 44.48, fewsol ViT-B/32
-            nn.ReLU(),
-            nn.LayerNorm(c_in // reduction, dtype=dtype),
-            # nn.Dropout(dropout_prob),  # Add dropout layer
-            nn.Linear(c_in // reduction, c_in, bias=False, dtype=dtype), # 44.26, fewsol ViT-B/32 
-            nn.ReLU(),
-            nn.LayerNorm(c_in, dtype=dtype),
+            # nn.ReLU(),
+            # nn.LayerNorm(c_in // reduction, dtype=dtype),
+            # # nn.Dropout(dropout_prob),  # Add dropout layer
+            # nn.Linear(c_in // reduction, c_in, bias=False, dtype=dtype), # 44.26, fewsol ViT-B/32 
+            # nn.ReLU(),
+            # nn.LayerNorm(c_in, dtype=dtype),
             # # nn.Dropout(dropout_prob),  # Add dropout layer
             # nn.Linear(c_in, c_in // reduction, bias=False, dtype=dtype),
             # nn.ReLU(),
@@ -29,15 +37,27 @@ class Adapter_FC(nn.Module):
             # nn.ReLU(),
             # nn.LayerNorm(c_in // reduction, dtype=dtype),
         )
+        self.fc2 = nn.Sequential(
+            nn.Linear(c_in, c_in // reduction, bias=False, dtype=dtype), # 44.48, fewsol ViT-B/32
+            # nn.ReLU(),
+            # nn.LayerNorm(c_in // reduction, dtype=dtype),
+            # # nn.Dropout(dropout_prob),  # Add dropout layer
+            # nn.Linear(c_in // reduction, c_in, bias=False, dtype=dtype), # 44.26, fewsol ViT-B/32 
+        )
 
         self.conv3x = Adapter(c_in, 'conv-3x')
 
+        # Apply Xavier initialization to the linear layers
+        self.apply(init_weights)
+
     def forward(self, image_features):
-        x = self.fc1(image_features).exp()
-        x = x + image_features
-        x = self.fc1(x) + x
-        # x = self.fc1(x) + x
-        return x
+        x1 = self.fc1(image_features)#.exp()
+        x2 = self.fc2(image_features)#.exp()
+        x1 = x1 + image_features
+        x2 = x2 + image_features
+        x21 = self.fc2(x1) + x1
+        x12 = self.fc1(x2) + x2
+        return x21, x12
 
 class ProtoCLIP(nn.Module):
     def __init__(self, clip_model, visual_memory_keys, visual_memory_values, textual_memory_bank, N, K, ndim, dtype):
@@ -91,7 +111,7 @@ class ProtoCLIP(nn.Module):
         return self.zs_labels_one_hot
 
 
-    def forward(self, zq_imgs, zq_labels, alpha=0.9, beta=17, do_zero_shot=False):
+    def forward(self, zq_imgs, zq_labels, alpha=0.9, beta=1, do_zero_shot=False):
 
         # print(self.clip_model.encode_image(zq_imgs).shape, self.adapter(zq_imgs).shape)
         # zq_imgs = self.clip_model.encode_image(zq_imgs) + self.adapter(zq_imgs).float()  # adapter
@@ -104,16 +124,17 @@ class ProtoCLIP(nn.Module):
         # query adapter 3
         zq_imgs = zq_imgs.float()
         if not do_zero_shot:
-            zq_imgs = self.adapter_fc(zq_imgs)
+            zq_imgs_i, zq_imgs_t = self.adapter_fc(zq_imgs)
             pass
-        zq_imgs = zq_imgs / zq_imgs.norm(dim=-1, keepdim=True)
+        zq_imgs_i = zq_imgs_i / zq_imgs_i.norm(dim=-1, keepdim=True)
+        zq_imgs_t = zq_imgs_t / zq_imgs_t.norm(dim=-1, keepdim=True)
         
         # compute pairwise euclidean distances(query, prototypes)
         pow = 2
         xq_img_proto_dists = torch.cdist(
-            zq_imgs.float(), z_img_proto.float(), p=pow).pow(pow)
+            zq_imgs_i.float(), z_img_proto.float(), p=pow).pow(pow)
         xq_text_proto_dists = torch.cdist(
-            zq_imgs.float(), z_text_proto.float(), p=pow).pow(pow)
+            zq_imgs_t.float(), z_text_proto.float(), p=pow).pow(pow)
 
         self.beta = 1 #torch.tensor(1.0*self.ndim).sqrt() 
 
@@ -125,7 +146,9 @@ class ProtoCLIP(nn.Module):
 
         clip_logits = zq_imgs @ self.frozen_textual_memory_bank.float()
 
-        logits = (logits_iq * logits_tq)#.exp()
+        # logits = (logits_iq + logits_tq + clip_logits)#.exp()
+        # logits = (logits_iq * logits_tq + clip_logits).exp() #  works
+        logits = ((logits_iq * logits_tq) + clip_logits)#.exp() #  without exp by far the best
 
         # logits = self.fc(logits)
 
