@@ -25,7 +25,7 @@ class Adapter_FC(nn.Module):
             nn.Linear(c_in, c_in // reduction, bias=False, dtype=dtype), # 44.48, fewsol ViT-B/32
             # nn.ReLU(),
             # nn.LayerNorm(c_in // reduction, dtype=dtype),
-            # # nn.Dropout(dropout_prob),  # Add dropout layer
+            # # # nn.Dropout(dropout_prob),  # Add dropout layer
             # nn.Linear(c_in // reduction, c_in, bias=False, dtype=dtype), # 44.26, fewsol ViT-B/32 
             # nn.ReLU(),
             # nn.LayerNorm(c_in, dtype=dtype),
@@ -39,10 +39,10 @@ class Adapter_FC(nn.Module):
         )
         self.fc2 = nn.Sequential(
             nn.Linear(c_in, c_in // reduction, bias=False, dtype=dtype), # 44.48, fewsol ViT-B/32
-            # nn.ReLU(),
-            # nn.LayerNorm(c_in // reduction, dtype=dtype),
+            nn.ReLU(),
+            nn.LayerNorm(c_in // reduction, dtype=dtype),
             # # nn.Dropout(dropout_prob),  # Add dropout layer
-            # nn.Linear(c_in // reduction, c_in, bias=False, dtype=dtype), # 44.26, fewsol ViT-B/32 
+            nn.Linear(c_in // reduction, c_in, bias=False, dtype=dtype), # 44.26, fewsol ViT-B/32 
         )
 
         self.conv3x = Adapter(c_in, 'conv-3x')
@@ -51,13 +51,13 @@ class Adapter_FC(nn.Module):
         self.apply(init_weights)
 
     def forward(self, image_features):
-        x1 = self.fc1(image_features)#.exp()
-        x2 = self.fc2(image_features)#.exp()
-        x1 = x1 + image_features
-        x2 = x2 + image_features
-        x21 = self.fc2(x1) + x1
-        x12 = self.fc1(x2) + x2
-        return x21, x12
+        x1 = self.fc1(image_features)
+        # x2 = self.fc2(image_features)#.exp()
+        # x1 = x1 + image_features
+        # x2 = x2 + image_features
+        # x21 = self.fc2(x1) + x1
+        # x12 = self.fc1(x2) + x2
+        return x1, x1#, x21, x12
 
 class ProtoCLIP(nn.Module):
     def __init__(self, clip_model, visual_memory_keys, visual_memory_values, textual_memory_bank, N, K, ndim, dtype):
@@ -99,6 +99,7 @@ class ProtoCLIP(nn.Module):
         zs_imgs, zs_text = self.get_memory_banks()
         zs_imgs = zs_imgs / zs_imgs.norm(dim=-1, keepdim=True)
         z_img_proto = zs_imgs.mean(dim=1)
+        # z_img_proto = zs_imgs.sum(dim=1)
         z_img_proto = z_img_proto / z_img_proto.norm(dim=-1, keepdim=True)
 
         # use all classes, normalization, compute class prototypes
@@ -137,23 +138,34 @@ class ProtoCLIP(nn.Module):
             zq_imgs_t.float(), z_text_proto.float(), p=pow).pow(pow)
 
         self.beta = 1 #torch.tensor(1.0*self.ndim).sqrt() 
-
-        # logits_iq = (self.beta * -xq_img_proto_dists).exp() @ zs_one_hot_labels + xq_text_proto_dists
-        # logits_tq = xq_img_proto_dists + (self.beta * -xq_text_proto_dists).exp() @ zs_one_hot_labels
-
         logits_iq = (self.beta * -xq_img_proto_dists).exp()
         logits_tq = (self.beta * -xq_text_proto_dists).exp()
 
-        clip_logits = zq_imgs @ self.frozen_textual_memory_bank.float()
+
+        clip_logits = (zq_imgs @ self.frozen_textual_memory_bank.float()) # similarity to dist
+
+
+        # compute pairwise euclidean distances(query, prototypes)
+        # pow = 2
+        # logits_iq = (-1 + zq_imgs_i @ z_img_proto.t()).exp()
+        # logits_tq = (-1 + zq_imgs_t @ z_text_proto.t()).exp()
+        # self.beta = 1 #torch.tensor(1.0*self.ndim).sqrt() 
+        # # logits_iq = (self.beta * ).exp()
+        # # logits_tq = (self.beta * -xq_text_proto_dists).exp()
+        # logits = (logits_iq * logits_iq * clip_logits.exp())
 
         # logits = (logits_iq + logits_tq + clip_logits)#.exp()
-        # logits = (logits_iq * logits_tq + clip_logits).exp() #  works
-        logits = ((logits_iq * logits_tq) + clip_logits)#.exp() #  without exp by far the best
+        logits = (logits_iq * logits_tq + clip_logits)#.exp() #  works
+        # logits = (logits_iq * logits_tq + clip_logits).pow(6) #  works
+        # logits = ((logits_iq * logits_tq) + clip_logits)#.exp() #  without exp by far the best
+        # logits = ((logits_iq * clip_logits) + logits_tq * clip_logits)#.exp() #  without exp by far the best
+        # logits = (logits_iq + logits_tq * clip_logits)#.pow(6))
+        # logits = ((logits_iq + logits_tq))#.pow(6))
 
         # logits = self.fc(logits)
 
         p = logits.softmax(-1)
-
+ 
         # print(xq_img_proto_dists, xq_text_proto_dists.shape)
 
 

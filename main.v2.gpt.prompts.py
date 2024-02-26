@@ -129,7 +129,7 @@ def run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, 
     optimizer = torch.optim.AdamW(
         params, lr=cfg['lr'], eps=1e-4, weight_decay=0.005)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, cfg['train_epoch'])
+        optimizer, cfg['train_epoch'] * 10)
     # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, cfg['train_epoch'])
     
 
@@ -426,8 +426,8 @@ def main():
 
     cfg = yaml.load(open(args.config, 'r'), Loader=yaml.Loader)
 
-    if args.dataset is None:
-        raise SystemExit("Please provide alias of dataset")
+    # if args.dataset is None:
+    #     raise SystemExit("Please provide alias of dataset")
 
     cfg = populate_cfg_using_args(cfg, args)
 
@@ -456,6 +456,8 @@ def main():
         dataset = ImageNet(cfg['root_path'], cfg['shots'], preprocess)
         train_loader_cache = torch.utils.data.DataLoader(
             dataset.train, batch_size=train_bs, num_workers=n_workers, shuffle=False, worker_init_fn=seed_worker, generator=g)
+        train_loader_F = torch.utils.data.DataLoader(
+            dataset.train, batch_size=256, num_workers=n_workers, shuffle=True, worker_init_fn=seed_worker, generator=g)
         val_loader = torch.utils.data.DataLoader(
             dataset.test, batch_size=val_bs, num_workers=n_workers, shuffle=False)
         test_loader = torch.utils.data.DataLoader(
