@@ -453,6 +453,8 @@ def main():
         dataset = ImageNet(cfg['root_path'], cfg['shots'], preprocess)
         train_loader_cache = torch.utils.data.DataLoader(
             dataset.train, batch_size=train_bs, num_workers=n_workers, shuffle=False, worker_init_fn=seed_worker, generator=g)
+        train_loader_F = torch.utils.data.DataLoader(
+            dataset.train, batch_size=train_bs, num_workers=n_workers, shuffle=True, worker_init_fn=seed_worker, generator=g)
         val_loader = torch.utils.data.DataLoader(
             dataset.test, batch_size=val_bs, num_workers=n_workers, shuffle=False)
         test_loader = torch.utils.data.DataLoader(
@@ -462,6 +464,8 @@ def main():
         train_tranform = get_random_train_tfm()
         train_loader_cache = build_data_loader(data_source=dataset.train_x, batch_size=train_bs,
                                                tfm=train_tranform, is_train=True, shuffle=False, worker_init_fn=seed_worker, generator=g)
+        train_loader_F = build_data_loader(data_source=dataset.train_x, batch_size=train_bs,
+                                       tfm=train_tranform, is_train=True, shuffle=True, worker_init_fn=seed_worker, generator=g)
         val_loader = build_data_loader(
             data_source=dataset.val, batch_size=val_bs, is_train=False, tfm=preprocess, shuffle=False)
         test_loader = build_data_loader(
@@ -489,7 +493,7 @@ def main():
 
     # ------------------------------------------ Proto-CLIP ------------------------------------------
     run_proto_clip(cfg, visual_memory_keys, visual_memory_values, val_features, val_labels,
-                   test_features, test_labels, textual_memory_bank, clip_model, text_prompts)
+                   test_features, test_labels, textual_memory_bank, clip_model, text_prompts, train_loader_F)
 
 
 if __name__ == '__main__':
