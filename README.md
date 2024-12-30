@@ -96,7 +96,7 @@ Please cite <span style="font-variant: small-caps">Proto-CLIP</span> if it helps
 ```bibtex
 @INPROCEEDINGS{padalunkal2024protoclip,
   author={P, Jishnu Jaykumar and Palanisamy, Kamalesh and Chao, Yu-Wei and Du, Xinya and Xiang, Yu},
-  title={Proto-CLIP: Vision-Language Prototypical Network for Few-Shot Learning}, 
+  title={{Proto-CLIP}: Vision-Language Prototypical Network for Few-Shot Learning}, 
   keywords={Training;Representation learning;Adaptation models;Three-dimensional displays;Prototypes;Benchmark testing;Object recognition;Few shot learning;Intelligent robots},
   booktitle={2024 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)}, 
   doi={10.1109/IROS58592.2024.10801660},
